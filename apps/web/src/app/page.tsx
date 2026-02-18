@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, ShoppingBag, Zap, Shield, Star } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ProductCard } from "@/components/product-card";
 import { getProducts, type Product } from "@/lib/products";
 
 async function getFeaturedProducts(): Promise<Product[]> {
@@ -17,32 +17,75 @@ export default async function HomePage() {
   const products = await getFeaturedProducts();
 
   return (
-    <div className="flex flex-col">
+    <div>
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden">
-        {/* Background gradient */}
+      <section
+        style={{
+          position: "relative",
+          overflow: "hidden",
+          paddingTop: "5rem",
+          paddingBottom: "5rem",
+          textAlign: "center",
+        }}
+      >
+        {/* Gradient blob */}
         <div
-          className="absolute inset-0 -z-10"
           style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: -1,
             background:
-              "radial-gradient(ellipse 80% 60% at 50% -10%, color-mix(in srgb, var(--color-primary) 15%, transparent), transparent)",
+              "radial-gradient(ellipse 80% 50% at 50% -20%, rgba(59,130,246,0.12), transparent)",
+            pointerEvents: "none",
           }}
         />
 
-        <div className="container py-20 md:py-28 lg:py-36 text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-background)] px-4 py-1.5 text-sm font-medium text-[var(--color-muted-foreground)] mb-8 shadow-sm">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--color-primary)] opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--color-primary)]" />
-            </span>
+        <div className="container">
+          {/* Pill badge */}
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.5rem",
+              borderRadius: "9999px",
+              border: "1px solid var(--border)",
+              backgroundColor: "var(--bg)",
+              padding: "0.375rem 1rem",
+              fontSize: "0.8125rem",
+              fontWeight: 500,
+              color: "var(--muted-fg)",
+              marginBottom: "2rem",
+              boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+            }}
+          >
+            <span
+              style={{
+                display: "inline-block",
+                width: "0.5rem",
+                height: "0.5rem",
+                borderRadius: "9999px",
+                backgroundColor: "var(--color-primary)",
+                animation: "pulse 2s infinite",
+              }}
+            />
             Now in Beta — Free to use
           </div>
 
-          <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight leading-[1.1] max-w-4xl mx-auto">
+          <h1
+            style={{
+              fontSize: "clamp(2.5rem, 6vw, 4.5rem)",
+              fontWeight: 800,
+              lineHeight: 1.1,
+              letterSpacing: "-0.03em",
+              maxWidth: "48rem",
+              margin: "0 auto",
+              color: "var(--fg)",
+            }}
+          >
             Shop the Future of{" "}
             <span
               style={{
-                background: "linear-gradient(135deg, var(--color-primary), #8b5cf6)",
+                background: "linear-gradient(135deg, var(--color-primary) 0%, #8b5cf6 100%)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
@@ -52,27 +95,49 @@ export default async function HomePage() {
             </span>
           </h1>
 
-          <p className="mt-6 text-lg md:text-xl text-[var(--color-muted-foreground)] max-w-2xl mx-auto leading-relaxed">
+          <p
+            style={{
+              marginTop: "1.5rem",
+              fontSize: "1.125rem",
+              color: "var(--muted-fg)",
+              maxWidth: "36rem",
+              marginInline: "auto",
+              lineHeight: 1.7,
+            }}
+          >
             Discover premium tech products curated for modern professionals. Fast shipping, secure
             payments, and an experience you&apos;ll love.
           </p>
 
-          <div className="mt-10 flex flex-wrap gap-4 justify-center">
-            <Button size="lg" asChild className="h-12 px-8 text-base rounded-xl shadow-lg">
-              <Link href="/products">
-                <ShoppingBag className="mr-2 h-5 w-5" />
-                Shop Now
-              </Link>
-            </Button>
-            <Button size="lg" variant="outline" asChild className="h-12 px-8 text-base rounded-xl">
-              <Link href="/auth/register">
-                Create Free Account <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
+          <div
+            style={{
+              marginTop: "2.5rem",
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "1rem",
+              justifyContent: "center",
+            }}
+          >
+            <Link href="/products" className="btn btn-primary btn-lg">
+              <ShoppingBag style={{ width: "1.25rem", height: "1.25rem" }} />
+              Shop Now
+            </Link>
+            <Link href="/auth/register" className="btn btn-outline btn-lg">
+              Create Free Account
+              <ArrowRight style={{ width: "1rem", height: "1rem" }} />
+            </Link>
           </div>
 
           {/* Trust badges */}
-          <div className="mt-14 flex flex-wrap gap-6 justify-center">
+          <div
+            style={{
+              marginTop: "3.5rem",
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "1rem",
+              justifyContent: "center",
+            }}
+          >
             {[
               { icon: Zap, label: "Fast Delivery" },
               { icon: Shield, label: "Secure Checkout" },
@@ -80,9 +145,20 @@ export default async function HomePage() {
             ].map(({ icon: Icon, label }) => (
               <div
                 key={label}
-                className="flex items-center gap-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-background)] px-5 py-3 text-sm font-medium shadow-sm"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.625rem",
+                  borderRadius: "0.75rem",
+                  border: "1px solid var(--border)",
+                  backgroundColor: "var(--bg)",
+                  padding: "0.625rem 1.125rem",
+                  fontSize: "0.875rem",
+                  fontWeight: 500,
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+                }}
               >
-                <Icon className="h-4 w-4 text-[var(--color-primary)]" />
+                <Icon style={{ width: "1rem", height: "1rem", color: "var(--color-primary)" }} />
                 {label}
               </div>
             ))}
@@ -91,18 +167,45 @@ export default async function HomePage() {
       </section>
 
       {/* ── Stats strip ──────────────────────────────────────────────────── */}
-      <section className="border-y border-[var(--color-border)] bg-[var(--color-muted)]/40">
-        <div className="container py-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+      <section
+        style={{
+          borderTop: "1px solid var(--border)",
+          borderBottom: "1px solid var(--border)",
+          backgroundColor: "var(--muted-bg)",
+          padding: "2rem 0",
+        }}
+      >
+        <div className="container">
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(4, 1fr)",
+              gap: "1.5rem",
+              textAlign: "center",
+            }}
+          >
             {[
               { value: "15+", label: "Products" },
               { value: "100%", label: "Secure" },
               { value: "24/7", label: "Support" },
               { value: "Free", label: "Returns" },
             ].map(({ value, label }) => (
-              <div key={label} className="space-y-1">
-                <div className="text-3xl font-extrabold text-[var(--color-primary)]">{value}</div>
-                <div className="text-sm text-[var(--color-muted-foreground)]">{label}</div>
+              <div key={label}>
+                <div
+                  style={{
+                    fontSize: "2rem",
+                    fontWeight: 800,
+                    color: "var(--color-primary)",
+                    lineHeight: 1,
+                  }}
+                >
+                  {value}
+                </div>
+                <div
+                  style={{ fontSize: "0.875rem", color: "var(--muted-fg)", marginTop: "0.375rem" }}
+                >
+                  {label}
+                </div>
               </div>
             ))}
           </div>
@@ -110,109 +213,138 @@ export default async function HomePage() {
       </section>
 
       {/* ── Featured Products ─────────────────────────────────────────────── */}
-      <section className="py-20">
+      <section style={{ padding: "5rem 0" }}>
         <div className="container">
-          <div className="flex items-end justify-between mb-10">
+          <div
+            style={{
+              display: "flex",
+              alignItems: "flex-end",
+              justifyContent: "space-between",
+              marginBottom: "2.5rem",
+              flexWrap: "wrap",
+              gap: "1rem",
+            }}
+          >
             <div>
-              <Badge variant="secondary" className="mb-3">
+              <Badge variant="secondary" style={{ marginBottom: "0.75rem" }}>
                 Featured
               </Badge>
-              <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Handpicked for You</h2>
-              <p className="text-[var(--color-muted-foreground)] mt-2">
+              <h2
+                style={{
+                  fontSize: "clamp(1.75rem, 3vw, 2.5rem)",
+                  fontWeight: 800,
+                  letterSpacing: "-0.02em",
+                  color: "var(--fg)",
+                }}
+              >
+                Handpicked for You
+              </h2>
+              <p style={{ color: "var(--muted-fg)", marginTop: "0.375rem" }}>
                 Our most popular products this week
               </p>
             </div>
-            <Button variant="outline" asChild className="hidden sm:flex">
-              <Link href="/products">
-                View all <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
+            <Link href="/products" className="btn btn-outline btn-sm">
+              View all <ArrowRight style={{ width: "0.875rem", height: "0.875rem" }} />
+            </Link>
           </div>
 
           {products.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-[var(--color-border)] py-24 text-center">
-              <ShoppingBag className="h-10 w-10 text-[var(--color-muted-foreground)] mx-auto mb-3" />
-              <p className="text-[var(--color-muted-foreground)] font-medium">
+            <div
+              style={{
+                borderRadius: "1rem",
+                border: "2px dashed var(--border)",
+                padding: "6rem 2rem",
+                textAlign: "center",
+              }}
+            >
+              <ShoppingBag
+                style={{
+                  width: "2.5rem",
+                  height: "2.5rem",
+                  color: "var(--muted-fg)",
+                  margin: "0 auto 1rem",
+                }}
+              />
+              <p style={{ color: "var(--muted-fg)", fontWeight: 500 }}>
                 Start the API server to see products
               </p>
-              <Button variant="outline" className="mt-4" asChild>
-                <Link href="/products">Browse Products</Link>
-              </Button>
+              <Link
+                href="/products"
+                className="btn btn-outline btn-sm"
+                style={{ marginTop: "1rem" }}
+              >
+                Browse Products
+              </Link>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+                gap: "1.5rem",
+              }}
+            >
               {products.map((product) => (
-                <Link key={product.id} href={`/products/${product.slug}`} className="group">
-                  <article className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] overflow-hidden transition-all duration-200 hover:shadow-xl hover:-translate-y-1 h-full flex flex-col">
-                    <div className="aspect-[4/3] overflow-hidden bg-[var(--color-muted)]">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={product.images[0] ?? "https://picsum.photos/800/600"}
-                        alt={product.title}
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                      />
-                    </div>
-                    <div className="p-5 flex flex-col flex-1">
-                      <h3 className="font-semibold text-base leading-snug line-clamp-2 group-hover:text-[var(--color-primary)] transition-colors">
-                        {product.title}
-                      </h3>
-                      <p className="text-sm text-[var(--color-muted-foreground)] mt-1.5 line-clamp-2 flex-1">
-                        {product.description}
-                      </p>
-                      <div className="flex items-center justify-between mt-4 pt-4 border-t border-[var(--color-border)]">
-                        <span className="text-xl font-bold text-[var(--color-primary)]">
-                          ${product.price.toFixed(2)}
-                        </span>
-                        <Badge variant={product.stock > 10 ? "secondary" : "destructive"}>
-                          {product.stock > 10 ? "In Stock" : `${product.stock} left`}
-                        </Badge>
-                      </div>
-                    </div>
-                  </article>
-                </Link>
+                <ProductCard key={product.id} product={product} />
               ))}
             </div>
           )}
-
-          <div className="mt-8 text-center sm:hidden">
-            <Button variant="outline" asChild>
-              <Link href="/products">
-                View all products <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
         </div>
       </section>
 
       {/* ── CTA Banner ───────────────────────────────────────────────────── */}
-      <section className="py-16">
+      <section style={{ padding: "0 0 5rem" }}>
         <div className="container">
           <div
-            className="rounded-3xl p-10 md:p-16 text-center text-white"
             style={{
-              background: "linear-gradient(135deg, var(--color-primary), #7c3aed)",
+              borderRadius: "1.5rem",
+              padding: "4rem 2rem",
+              textAlign: "center",
+              background: "linear-gradient(135deg, var(--color-primary) 0%, #7c3aed 100%)",
+              color: "#fff",
             }}
           >
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to start shopping?</h2>
-            <p className="text-white/80 text-lg mb-8 max-w-lg mx-auto">
+            <h2
+              style={{
+                fontSize: "clamp(1.75rem, 3vw, 2.25rem)",
+                fontWeight: 800,
+                marginBottom: "1rem",
+              }}
+            >
+              Ready to start shopping?
+            </h2>
+            <p
+              style={{
+                color: "rgba(255,255,255,0.8)",
+                fontSize: "1.0625rem",
+                marginBottom: "2rem",
+                maxWidth: "28rem",
+                marginInline: "auto",
+              }}
+            >
               Create a free account and get access to exclusive deals and early product launches.
             </p>
-            <div className="flex flex-wrap gap-4 justify-center">
-              <Button
-                size="lg"
-                asChild
-                className="bg-white text-[var(--color-primary)] hover:bg-white/90 h-12 px-8 rounded-xl font-bold"
+            <div
+              style={{ display: "flex", flexWrap: "wrap", gap: "1rem", justifyContent: "center" }}
+            >
+              <Link
+                href="/auth/register"
+                className="btn btn-lg"
+                style={{ backgroundColor: "#fff", color: "var(--color-primary)", fontWeight: 700 }}
               >
-                <Link href="/auth/register">Get Started Free</Link>
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                asChild
-                className="border-white/40 text-white hover:bg-white/10 h-12 px-8 rounded-xl"
+                Get Started Free
+              </Link>
+              <Link
+                href="/products"
+                className="btn btn-lg"
+                style={{
+                  backgroundColor: "rgba(255,255,255,0.15)",
+                  color: "#fff",
+                  border: "1.5px solid rgba(255,255,255,0.4)",
+                }}
               >
-                <Link href="/products">Browse Products</Link>
-              </Button>
+                Browse Products
+              </Link>
             </div>
           </div>
         </div>

@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ShoppingBag, Loader2, Eye, EyeOff } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { apiRegister, setAuth } from "@/lib/auth";
@@ -40,52 +39,129 @@ export default function RegisterPage() {
     }
   }
 
+  const strength =
+    password.length === 0
+      ? 0
+      : password.length < 4
+        ? 1
+        : password.length < 8
+          ? 2
+          : password.length < 12
+            ? 3
+            : 4;
+  const strengthColor = ["transparent", "#ef4444", "#f59e0b", "#3b82f6", "#22c55e"][strength];
+
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex">
-      {/* Left panel – decorative */}
+    <div style={{ display: "flex", minHeight: "calc(100vh - 4rem)" }}>
+      {/* Left decorative panel */}
       <div
-        className="hidden lg:flex lg:w-1/2 flex-col items-center justify-center p-12 text-white"
-        style={{ background: "linear-gradient(135deg, #7c3aed, var(--color-primary))" }}
+        style={{
+          display: "none",
+          flex: "0 0 50%",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "3rem",
+          background: "linear-gradient(135deg, #7c3aed 0%, var(--color-primary) 100%)",
+          color: "#fff",
+        }}
+        className="lg:flex"
       >
-        <ShoppingBag className="h-14 w-14 mb-6 opacity-90" />
-        <h2 className="text-3xl font-bold mb-3">Join us today</h2>
-        <p className="text-white/70 text-center max-w-xs text-base leading-relaxed">
+        <ShoppingBag
+          style={{ width: "3.5rem", height: "3.5rem", marginBottom: "1.5rem", opacity: 0.9 }}
+        />
+        <h2 style={{ fontSize: "2rem", fontWeight: 800, marginBottom: "0.75rem" }}>
+          Join us today
+        </h2>
+        <p
+          style={{
+            color: "rgba(255,255,255,0.7)",
+            textAlign: "center",
+            maxWidth: "20rem",
+            lineHeight: 1.7,
+          }}
+        >
           Create your free account and start shopping premium tech products instantly.
         </p>
-        <div className="mt-10 space-y-3 w-full max-w-xs">
+        <div
+          style={{
+            marginTop: "2.5rem",
+            display: "flex",
+            flexDirection: "column",
+            gap: "0.75rem",
+            width: "100%",
+            maxWidth: "20rem",
+          }}
+        >
           {[
             "✓ Free to create an account",
             "✓ Exclusive member discounts",
             "✓ Order tracking & history",
             "✓ Priority customer support",
           ].map((f) => (
-            <div key={f} className="text-sm text-white/80 font-medium">
+            <div
+              key={f}
+              style={{ fontSize: "0.9375rem", color: "rgba(255,255,255,0.85)", fontWeight: 500 }}
+            >
               {f}
             </div>
           ))}
         </div>
       </div>
 
-      {/* Right panel – form */}
-      <div className="flex-1 flex items-center justify-center px-6 py-12">
-        <div className="w-full max-w-md">
+      {/* Right form panel */}
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "3rem 1.5rem",
+        }}
+      >
+        <div style={{ width: "100%", maxWidth: "26rem" }}>
           {/* Mobile logo */}
-          <div className="flex items-center gap-2 mb-8 lg:hidden">
-            <div className="h-8 w-8 rounded-lg bg-[var(--color-primary)] flex items-center justify-center">
-              <ShoppingBag className="h-4 w-4 text-white" />
-            </div>
-            <span className="font-bold text-lg">digital-ecommerce</span>
+          <div
+            className="lg:hidden"
+            style={{ display: "flex", alignItems: "center", gap: "0.625rem", marginBottom: "2rem" }}
+          >
+            <span
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "2rem",
+                height: "2rem",
+                borderRadius: "0.5rem",
+                backgroundColor: "var(--color-primary)",
+              }}
+            >
+              <ShoppingBag style={{ width: "1rem", height: "1rem", color: "#fff" }} />
+            </span>
+            <span style={{ fontWeight: 700, fontSize: "1.0625rem" }}>digital-ecommerce</span>
           </div>
 
-          <div className="mb-8">
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Create account</h1>
-            <p className="text-[var(--color-muted-foreground)] mt-1.5">
+          <div style={{ marginBottom: "2rem" }}>
+            <h1
+              style={{
+                fontSize: "1.875rem",
+                fontWeight: 800,
+                letterSpacing: "-0.02em",
+                color: "var(--fg)",
+              }}
+            >
+              Create account
+            </h1>
+            <p style={{ color: "var(--muted-fg)", marginTop: "0.375rem" }}>
               Join thousands of happy shoppers
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-1.5">
+          <form
+            onSubmit={handleSubmit}
+            style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}
+          >
+            <div>
               <Label htmlFor="name">Full Name</Label>
               <Input
                 id="name"
@@ -95,11 +171,9 @@ export default function RegisterPage() {
                 onChange={(e) => setName(e.target.value)}
                 required
                 autoComplete="name"
-                className="rounded-xl h-11"
               />
             </div>
-
-            <div className="space-y-1.5">
+            <div>
               <Label htmlFor="email">Email address</Label>
               <Input
                 id="email"
@@ -109,13 +183,11 @@ export default function RegisterPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="email"
-                className="rounded-xl h-11"
               />
             </div>
-
-            <div className="space-y-1.5">
+            <div>
               <Label htmlFor="password">Password</Label>
-              <div className="relative">
+              <div style={{ position: "relative" }}>
                 <Input
                   id="password"
                   type={showPw ? "text" : "password"}
@@ -125,30 +197,44 @@ export default function RegisterPage() {
                   required
                   autoComplete="new-password"
                   minLength={8}
-                  className="rounded-xl h-11 pr-10"
+                  style={{ paddingRight: "2.75rem" }}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPw((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] transition-colors"
+                  style={{
+                    position: "absolute",
+                    right: "0.75rem",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    color: "var(--muted-fg)",
+                    padding: 0,
+                    display: "flex",
+                  }}
                   tabIndex={-1}
                 >
-                  {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showPw ? (
+                    <EyeOff style={{ width: "1rem", height: "1rem" }} />
+                  ) : (
+                    <Eye style={{ width: "1rem", height: "1rem" }} />
+                  )}
                 </button>
               </div>
+              {/* Strength bar */}
               {password.length > 0 && (
-                <div className="flex gap-1 mt-1.5">
+                <div style={{ display: "flex", gap: "0.25rem", marginTop: "0.5rem" }}>
                   {[1, 2, 3, 4].map((i) => (
                     <div
                       key={i}
-                      className="h-1 flex-1 rounded-full transition-colors"
                       style={{
-                        backgroundColor:
-                          password.length >= i * 2
-                            ? password.length >= 8
-                              ? "#22c55e"
-                              : "#f59e0b"
-                            : "var(--color-border)",
+                        height: "0.25rem",
+                        flex: 1,
+                        borderRadius: "9999px",
+                        backgroundColor: i <= strength ? strengthColor : "var(--border)",
+                        transition: "background-color 0.2s",
                       }}
                     />
                   ))}
@@ -157,32 +243,54 @@ export default function RegisterPage() {
             </div>
 
             {error && (
-              <div className="rounded-xl bg-[var(--color-destructive)]/10 border border-[var(--color-destructive)]/20 px-4 py-3 text-sm text-[var(--color-destructive)]">
+              <div
+                style={{
+                  borderRadius: "0.625rem",
+                  backgroundColor: "rgba(239,68,68,0.08)",
+                  border: "1px solid rgba(239,68,68,0.25)",
+                  padding: "0.75rem 1rem",
+                  fontSize: "0.875rem",
+                  color: "var(--color-destructive)",
+                }}
+              >
                 {error}
               </div>
             )}
 
-            <Button
+            <button
               type="submit"
-              className="w-full h-11 rounded-xl text-base font-semibold"
+              className="btn btn-primary"
               disabled={loading}
+              style={{
+                height: "2.875rem",
+                fontSize: "1rem",
+                fontWeight: 700,
+                marginTop: "0.25rem",
+              }}
             >
               {loading ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating account…
+                  <Loader2
+                    style={{ width: "1rem", height: "1rem", animation: "spin 1s linear infinite" }}
+                  />{" "}
+                  Creating account…
                 </>
               ) : (
                 "Create account"
               )}
-            </Button>
+            </button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-[var(--color-muted-foreground)]">
+          <p
+            style={{
+              marginTop: "1.5rem",
+              textAlign: "center",
+              fontSize: "0.875rem",
+              color: "var(--muted-fg)",
+            }}
+          >
             Already have an account?{" "}
-            <Link
-              href="/auth/login"
-              className="text-[var(--color-primary)] hover:underline font-semibold"
-            >
+            <Link href="/auth/login" style={{ color: "var(--color-primary)", fontWeight: 600 }}>
               Sign in
             </Link>
           </p>

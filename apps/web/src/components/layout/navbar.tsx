@@ -7,7 +7,6 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { getUser, clearAuth, type User as AuthUser } from "@/lib/auth";
 import { useRouter } from "next/navigation";
-import { cn } from "@/lib/utils";
 
 export function Navbar() {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -36,99 +35,156 @@ export function Navbar() {
 
   return (
     <header
-      className={cn(
-        "sticky top-0 z-50 w-full transition-all duration-200",
-        scrolled
-          ? "border-b border-[var(--color-border)] bg-[var(--color-background)]/95 backdrop-blur-md shadow-sm"
-          : "bg-[var(--color-background)]/80 backdrop-blur-sm",
-      )}
+      style={{
+        position: "sticky",
+        top: 0,
+        zIndex: 50,
+        width: "100%",
+        backgroundColor: "var(--bg)",
+        borderBottom: scrolled ? "1px solid var(--border)" : "1px solid transparent",
+        boxShadow: scrolled ? "0 1px 8px rgba(0,0,0,0.08)" : "none",
+        backdropFilter: "blur(12px)",
+        transition: "box-shadow 0.2s, border-color 0.2s",
+      }}
     >
-      <div className="container flex h-16 items-center justify-between">
+      <div
+        className="container"
+        style={{ display: "flex", alignItems: "center", height: "4rem", gap: "1rem" }}
+      >
         {/* Logo */}
         <Link
           href="/"
-          className="flex items-center gap-2.5 font-bold text-lg tracking-tight hover:opacity-80 transition-opacity"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "0.625rem",
+            fontWeight: 700,
+            fontSize: "1.0625rem",
+            textDecoration: "none",
+            color: "var(--fg)",
+            flexShrink: 0,
+          }}
         >
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--color-primary)]">
-            <ShoppingBag className="h-4 w-4 text-white" />
-          </div>
+          <span
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "2rem",
+              height: "2rem",
+              borderRadius: "0.5rem",
+              backgroundColor: "var(--color-primary)",
+            }}
+          >
+            <ShoppingBag style={{ width: "1rem", height: "1rem", color: "#fff" }} />
+          </span>
           <span className="hidden sm:block">digital-ecommerce</span>
         </Link>
 
         {/* Desktop Nav */}
-        <nav className="hidden md:flex items-center gap-1">
-          <Link
-            href="/products"
-            className="px-3 py-2 rounded-md text-sm font-medium text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-accent)] transition-colors"
-          >
+        <nav
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "0.25rem",
+            marginLeft: "1rem",
+            flex: 1,
+          }}
+          className="hidden md:flex"
+        >
+          <Link href="/products" className="btn btn-ghost btn-sm">
             Products
           </Link>
           {user?.role === "admin" && (
-            <Link
-              href="/admin/users"
-              className="px-3 py-2 rounded-md text-sm font-medium text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-accent)] transition-colors"
-            >
+            <Link href="/admin/users" className="btn btn-ghost btn-sm">
               Admin
             </Link>
           )}
         </nav>
 
+        {/* Spacer on mobile */}
+        <div style={{ flex: 1 }} className="md:hidden" />
+
         {/* Right side */}
-        <div className="flex items-center gap-2">
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
           <ThemeToggle />
 
           {user ? (
-            <div className="hidden md:flex items-center gap-2">
-              <Button variant="ghost" size="sm" asChild>
-                <Link href="/profile" className="flex items-center gap-1.5">
-                  <div className="h-6 w-6 rounded-full bg-[var(--color-primary)]/10 flex items-center justify-center">
-                    <User className="h-3.5 w-3.5 text-[var(--color-primary)]" />
-                  </div>
-                  <span className="max-w-[120px] truncate">{user.name}</span>
-                </Link>
-              </Button>
+            <div className="hidden md:flex" style={{ alignItems: "center", gap: "0.5rem" }}>
+              <Link
+                href="/profile"
+                className="btn btn-ghost btn-sm"
+                style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
+              >
+                <User style={{ width: "0.875rem", height: "0.875rem" }} />
+                <span
+                  style={{
+                    maxWidth: "8rem",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {user.name}
+                </span>
+              </Link>
               {user.role === "admin" && (
-                <Button variant="ghost" size="icon" asChild>
-                  <Link href="/admin/users" aria-label="Admin dashboard">
-                    <LayoutDashboard className="h-4 w-4" />
-                  </Link>
-                </Button>
+                <Link href="/admin/users" className="btn btn-ghost btn-icon" aria-label="Admin">
+                  <LayoutDashboard style={{ width: "1rem", height: "1rem" }} />
+                </Link>
               )}
-              <Button variant="ghost" size="icon" onClick={handleLogout} aria-label="Sign out">
-                <LogOut className="h-4 w-4" />
-              </Button>
+              <button
+                className="btn btn-ghost btn-icon"
+                onClick={handleLogout}
+                aria-label="Sign out"
+              >
+                <LogOut style={{ width: "1rem", height: "1rem" }} />
+              </button>
             </div>
           ) : (
-            <div className="hidden md:flex items-center gap-2">
-              <Button variant="ghost" size="sm" asChild>
-                <Link href="/auth/login">Login</Link>
-              </Button>
-              <Button size="sm" asChild>
-                <Link href="/auth/register">Get Started</Link>
-              </Button>
+            <div className="hidden md:flex" style={{ alignItems: "center", gap: "0.5rem" }}>
+              <Link href="/auth/login" className="btn btn-ghost btn-sm">
+                Login
+              </Link>
+              <Link href="/auth/register" className="btn btn-primary btn-sm">
+                Get Started
+              </Link>
             </div>
           )}
 
-          {/* Mobile menu toggle */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden"
+          {/* Mobile toggle */}
+          <button
+            className="btn btn-ghost btn-icon md:hidden"
             onClick={() => setMobileOpen((v) => !v)}
             aria-label="Toggle menu"
           >
-            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </Button>
+            {mobileOpen ? (
+              <X style={{ width: "1.25rem", height: "1.25rem" }} />
+            ) : (
+              <Menu style={{ width: "1.25rem", height: "1.25rem" }} />
+            )}
+          </button>
         </div>
       </div>
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-[var(--color-border)] bg-[var(--color-background)] px-4 py-4 space-y-1">
+        <div
+          className="md:hidden"
+          style={{
+            borderTop: "1px solid var(--border)",
+            backgroundColor: "var(--bg)",
+            padding: "1rem 1.25rem",
+            display: "flex",
+            flexDirection: "column",
+            gap: "0.25rem",
+          }}
+        >
           <Link
             href="/products"
             onClick={() => setMobileOpen(false)}
-            className="flex items-center px-3 py-2.5 rounded-md text-sm font-medium hover:bg-[var(--color-accent)] transition-colors"
+            className="btn btn-ghost"
+            style={{ justifyContent: "flex-start" }}
           >
             Products
           </Link>
@@ -137,24 +193,31 @@ export function Navbar() {
               <Link
                 href="/profile"
                 onClick={() => setMobileOpen(false)}
-                className="flex items-center gap-2 px-3 py-2.5 rounded-md text-sm font-medium hover:bg-[var(--color-accent)] transition-colors"
+                className="btn btn-ghost"
+                style={{ justifyContent: "flex-start", gap: "0.5rem" }}
               >
-                <User className="h-4 w-4" /> {user.name}
+                <User style={{ width: "1rem", height: "1rem" }} /> {user.name}
               </Link>
               {user.role === "admin" && (
                 <Link
                   href="/admin/users"
                   onClick={() => setMobileOpen(false)}
-                  className="flex items-center gap-2 px-3 py-2.5 rounded-md text-sm font-medium hover:bg-[var(--color-accent)] transition-colors"
+                  className="btn btn-ghost"
+                  style={{ justifyContent: "flex-start", gap: "0.5rem" }}
                 >
-                  <LayoutDashboard className="h-4 w-4" /> Admin
+                  <LayoutDashboard style={{ width: "1rem", height: "1rem" }} /> Admin
                 </Link>
               )}
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 w-full px-3 py-2.5 rounded-md text-sm font-medium text-[var(--color-destructive)] hover:bg-[var(--color-destructive)]/10 transition-colors"
+                className="btn btn-ghost"
+                style={{
+                  justifyContent: "flex-start",
+                  gap: "0.5rem",
+                  color: "var(--color-destructive)",
+                }}
               >
-                <LogOut className="h-4 w-4" /> Sign out
+                <LogOut style={{ width: "1rem", height: "1rem" }} /> Sign out
               </button>
             </>
           ) : (
@@ -162,14 +225,16 @@ export function Navbar() {
               <Link
                 href="/auth/login"
                 onClick={() => setMobileOpen(false)}
-                className="flex items-center px-3 py-2.5 rounded-md text-sm font-medium hover:bg-[var(--color-accent)] transition-colors"
+                className="btn btn-ghost"
+                style={{ justifyContent: "flex-start" }}
               >
                 Login
               </Link>
               <Link
                 href="/auth/register"
                 onClick={() => setMobileOpen(false)}
-                className="flex items-center px-3 py-2.5 rounded-md text-sm font-medium bg-[var(--color-primary)] text-white hover:opacity-90 transition-opacity"
+                className="btn btn-primary"
+                style={{ justifyContent: "flex-start" }}
               >
                 Get Started
               </Link>

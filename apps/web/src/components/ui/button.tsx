@@ -5,42 +5,28 @@ import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
-const buttonVariants = cva(
-  [
-    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold",
-    "transition-all duration-150 cursor-pointer select-none",
-    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
-    "disabled:pointer-events-none disabled:opacity-50",
-    "[&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
-  ].join(" "),
-  {
-    variants: {
-      variant: {
-        default:
-          "bg-[var(--color-primary)] text-[var(--color-primary-foreground)] hover:opacity-90 shadow-sm",
-        destructive:
-          "bg-[var(--color-destructive)] text-[var(--color-destructive-foreground)] hover:opacity-90 shadow-sm",
-        outline:
-          "border border-[var(--color-border)] bg-transparent text-[var(--color-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-accent-foreground)]",
-        secondary:
-          "bg-[var(--color-secondary)] text-[var(--color-secondary-foreground)] hover:opacity-80",
-        ghost:
-          "bg-transparent text-[var(--color-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-accent-foreground)]",
-        link: "text-[var(--color-primary)] underline-offset-4 hover:underline bg-transparent",
-      },
-      size: {
-        default: "h-10 px-5 py-2",
-        sm: "h-8 px-3 text-xs rounded-md",
-        lg: "h-12 px-8 text-base rounded-lg",
-        icon: "h-10 w-10 rounded-md",
-      },
+const buttonVariants = cva("btn", {
+  variants: {
+    variant: {
+      default: "btn-primary",
+      destructive: "btn-destructive",
+      outline: "btn-outline",
+      secondary: "btn-secondary",
+      ghost: "btn-ghost",
+      link: "btn-link",
     },
-    defaultVariants: {
-      variant: "default",
-      size: "default",
+    size: {
+      default: "btn-md",
+      sm: "btn-sm",
+      lg: "btn-lg",
+      icon: "btn-icon",
     },
   },
-);
+  defaultVariants: {
+    variant: "default",
+    size: "default",
+  },
+});
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {

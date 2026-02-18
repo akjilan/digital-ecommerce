@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ShoppingBag, Loader2, Eye, EyeOff } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { apiLogin, setAuth } from "@/lib/auth";
@@ -36,22 +35,56 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex">
-      {/* Left panel – decorative */}
+    <div style={{ display: "flex", minHeight: "calc(100vh - 4rem)" }}>
+      {/* Left decorative panel */}
       <div
-        className="hidden lg:flex lg:w-1/2 flex-col items-center justify-center p-12 text-white"
-        style={{ background: "linear-gradient(135deg, var(--color-primary), #7c3aed)" }}
+        style={{
+          display: "none",
+          flex: "0 0 50%",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "3rem",
+          background: "linear-gradient(135deg, var(--color-primary) 0%, #7c3aed 100%)",
+          color: "#fff",
+        }}
+        className="lg:flex"
       >
-        <ShoppingBag className="h-14 w-14 mb-6 opacity-90" />
-        <h2 className="text-3xl font-bold mb-3">Welcome back</h2>
-        <p className="text-white/70 text-center max-w-xs text-base leading-relaxed">
+        <ShoppingBag
+          style={{ width: "3.5rem", height: "3.5rem", marginBottom: "1.5rem", opacity: 0.9 }}
+        />
+        <h2 style={{ fontSize: "2rem", fontWeight: 800, marginBottom: "0.75rem" }}>Welcome back</h2>
+        <p
+          style={{
+            color: "rgba(255,255,255,0.7)",
+            textAlign: "center",
+            maxWidth: "20rem",
+            lineHeight: 1.7,
+          }}
+        >
           Sign in to access your orders, wishlist, and exclusive member deals.
         </p>
-        <div className="mt-10 grid grid-cols-2 gap-4 w-full max-w-xs">
+        <div
+          style={{
+            marginTop: "2.5rem",
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "0.75rem",
+            width: "100%",
+            maxWidth: "20rem",
+          }}
+        >
           {["Fast Delivery", "Secure Pay", "Easy Returns", "24/7 Support"].map((f) => (
             <div
               key={f}
-              className="rounded-xl bg-white/10 backdrop-blur px-4 py-3 text-sm font-medium text-center"
+              style={{
+                borderRadius: "0.75rem",
+                backgroundColor: "rgba(255,255,255,0.12)",
+                padding: "0.75rem 1rem",
+                fontSize: "0.875rem",
+                fontWeight: 500,
+                textAlign: "center",
+              }}
             >
               {f}
             </div>
@@ -59,26 +92,59 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Right panel – form */}
-      <div className="flex-1 flex items-center justify-center px-6 py-12">
-        <div className="w-full max-w-md">
+      {/* Right form panel */}
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "3rem 1.5rem",
+        }}
+      >
+        <div style={{ width: "100%", maxWidth: "26rem" }}>
           {/* Mobile logo */}
-          <div className="flex items-center gap-2 mb-8 lg:hidden">
-            <div className="h-8 w-8 rounded-lg bg-[var(--color-primary)] flex items-center justify-center">
-              <ShoppingBag className="h-4 w-4 text-white" />
-            </div>
-            <span className="font-bold text-lg">digital-ecommerce</span>
+          <div
+            className="lg:hidden"
+            style={{ display: "flex", alignItems: "center", gap: "0.625rem", marginBottom: "2rem" }}
+          >
+            <span
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "2rem",
+                height: "2rem",
+                borderRadius: "0.5rem",
+                backgroundColor: "var(--color-primary)",
+              }}
+            >
+              <ShoppingBag style={{ width: "1rem", height: "1rem", color: "#fff" }} />
+            </span>
+            <span style={{ fontWeight: 700, fontSize: "1.0625rem" }}>digital-ecommerce</span>
           </div>
 
-          <div className="mb-8">
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Sign in</h1>
-            <p className="text-[var(--color-muted-foreground)] mt-1.5">
+          <div style={{ marginBottom: "2rem" }}>
+            <h1
+              style={{
+                fontSize: "1.875rem",
+                fontWeight: 800,
+                letterSpacing: "-0.02em",
+                color: "var(--fg)",
+              }}
+            >
+              Sign in
+            </h1>
+            <p style={{ color: "var(--muted-fg)", marginTop: "0.375rem" }}>
               Enter your credentials to continue
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-1.5">
+          <form
+            onSubmit={handleSubmit}
+            style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}
+          >
+            <div>
               <Label htmlFor="email">Email address</Label>
               <Input
                 id="email"
@@ -88,13 +154,12 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="email"
-                className="rounded-xl h-11"
               />
             </div>
 
-            <div className="space-y-1.5">
+            <div>
               <Label htmlFor="password">Password</Label>
-              <div className="relative">
+              <div style={{ position: "relative" }}>
                 <Input
                   id="password"
                   type={showPw ? "text" : "password"}
@@ -103,46 +168,83 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   autoComplete="current-password"
-                  className="rounded-xl h-11 pr-10"
+                  style={{ paddingRight: "2.75rem" }}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPw((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] transition-colors"
+                  style={{
+                    position: "absolute",
+                    right: "0.75rem",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    color: "var(--muted-fg)",
+                    padding: 0,
+                    display: "flex",
+                  }}
                   tabIndex={-1}
                 >
-                  {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showPw ? (
+                    <EyeOff style={{ width: "1rem", height: "1rem" }} />
+                  ) : (
+                    <Eye style={{ width: "1rem", height: "1rem" }} />
+                  )}
                 </button>
               </div>
             </div>
 
             {error && (
-              <div className="rounded-xl bg-[var(--color-destructive)]/10 border border-[var(--color-destructive)]/20 px-4 py-3 text-sm text-[var(--color-destructive)]">
+              <div
+                style={{
+                  borderRadius: "0.625rem",
+                  backgroundColor: "rgba(239,68,68,0.08)",
+                  border: "1px solid rgba(239,68,68,0.25)",
+                  padding: "0.75rem 1rem",
+                  fontSize: "0.875rem",
+                  color: "var(--color-destructive)",
+                }}
+              >
                 {error}
               </div>
             )}
 
-            <Button
+            <button
               type="submit"
-              className="w-full h-11 rounded-xl text-base font-semibold"
+              className="btn btn-primary"
               disabled={loading}
+              style={{
+                height: "2.875rem",
+                fontSize: "1rem",
+                fontWeight: 700,
+                marginTop: "0.25rem",
+              }}
             >
               {loading ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Signing in…
+                  <Loader2
+                    style={{ width: "1rem", height: "1rem", animation: "spin 1s linear infinite" }}
+                  />
+                  Signing in…
                 </>
               ) : (
                 "Sign in"
               )}
-            </Button>
+            </button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-[var(--color-muted-foreground)]">
+          <p
+            style={{
+              marginTop: "1.5rem",
+              textAlign: "center",
+              fontSize: "0.875rem",
+              color: "var(--muted-fg)",
+            }}
+          >
             Don&apos;t have an account?{" "}
-            <Link
-              href="/auth/register"
-              className="text-[var(--color-primary)] hover:underline font-semibold"
-            >
+            <Link href="/auth/register" style={{ color: "var(--color-primary)", fontWeight: 600 }}>
               Create one free
             </Link>
           </p>
