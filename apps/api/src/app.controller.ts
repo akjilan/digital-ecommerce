@@ -1,0 +1,14 @@
+import { Controller, Get } from "@nestjs/common";
+
+@Controller()
+export class AppController {
+  @Get()
+  getRoot(): { message: string } {
+    return { message: "API is running" };
+  }
+
+  @Get("health")
+  getHealth(): { ok: boolean; service: string } {
+    return { ok: true, service: "api" };
+  }
+}
