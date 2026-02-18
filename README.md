@@ -1,111 +1,158 @@
 # Digital E-Commerce Platform
 
-A full-stack, production-ready e-commerce monorepo built with **Next.js**, **NestJS**, and **PostgreSQL**, managed with **pnpm workspaces**.
+A modern full-stack e-commerce platform built with **Next.js 16** (App Router) + **NestJS 11**, managed as a **pnpm workspace monorepo**.
 
----
+## Stack
 
-## 📁 Project Structure
+| Layer         | Technology                                     |
+| ------------- | ---------------------------------------------- |
+| Frontend      | Next.js 16 (App Router, React 19)              |
+| Backend       | NestJS 11 (Express)                            |
+| Auth          | JWT (passport-jwt + bcryptjs)                  |
+| Styling       | Tailwind CSS v4 + shadcn/ui components         |
+| Monorepo      | pnpm workspaces                                |
+| Shared config | `packages/config` (tsconfig, eslint, prettier) |
+
+## Project Structure
 
 ```
 ecommerce-platform/
 ├── apps/
-│   ├── web/          # Next.js storefront (App Router)
-│   └── api/          # NestJS REST/GraphQL backend
+│   ├── web/          # Next.js frontend (port 3000)
+│   └── api/          # NestJS backend (port 4000)
 ├── packages/
-│   ├── config/       # Shared ESLint, TypeScript & Prettier configs
-│   ├── ui/           # Shared React component library (future)
-│   └── types/        # Shared TypeScript types & API contracts (future)
-├── infra/
-│   └── docker/       # Docker Compose, DB init scripts, local tooling
-├── docs/             # Architecture decisions, API docs, runbooks
-├── .env.example      # Environment variable template
-├── package.json      # Root workspace manifest & scripts
-└── pnpm-workspace.yaml
+│   └── config/       # Shared tsconfig, eslint, prettier
+├── infra/            # Docker, infrastructure
+└── docs/             # Documentation
 ```
 
----
+## Quick Start
 
-## 🚀 Getting Started
-
-### Prerequisites
-
-| Tool                    | Version |
-| ----------------------- | ------- |
-| Node.js                 | ≥ 20    |
-| pnpm                    | ≥ 9     |
-| Docker & Docker Compose | latest  |
-
-### 1. Clone & install dependencies
+### 1. Install dependencies
 
 ```bash
-git clone <repo-url> ecommerce-platform
-cd ecommerce-platform
 pnpm install
 ```
 
 ### 2. Configure environment
 
-```bash
-cp .env.example .env
-# Edit .env with your local values
+**API** — create `apps/api/.env`:
+
+```env
+PORT=4000
+CORS_ORIGIN=http://localhost:3000
+JWT_SECRET=<generate with command below>
+JWT_EXPIRES_IN=7d
+ADMIN_EMAIL=admin@example.com
 ```
 
-### 3. Start infrastructure (DB, Redis, etc.)
+Generate JWT secret:
 
 ```bash
-docker compose -f infra/docker/docker-compose.yml up -d
+node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 ```
 
-### 4. Run all apps in development mode
+**Web** — create `apps/web/.env.local`:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:4000
+```
+
+### 3. Run development servers
 
 ```bash
+# Both apps in parallel
 pnpm dev
+
+# Or individually
+pnpm --filter @ecommerce/web dev    # http://localhost:3000
+pnpm --filter @ecommerce/api dev    # http://localhost:4000
 ```
 
-| App                  | URL                   |
-| -------------------- | --------------------- |
-| Storefront (Next.js) | http://localhost:3000 |
-| API (NestJS)         | http://localhost:4000 |
+## Pages
 
----
+| Route              | Description                 | Auth     |
+| ------------------ | --------------------------- | -------- |
+| `/`                | Home + featured products    | Public   |
+| `/products`        | Product listing with search | Public   |
+| `/products/[slug]` | Product detail              | Public   |
+| `/auth/login`      | Sign in                     | Public   |
+| `/auth/register`   | Create account              | Public   |
+| `/profile`         | User profile + edit         | 🔒 Auth  |
+| `/admin/users`     | User management table       | 🔒 Admin |
+| `/admin/products`  | Products management         | 🔒 Admin |
 
-## 🛠 Available Scripts
+## API Endpoints
 
-| Command          | Description                               |
-| ---------------- | ----------------------------------------- |
-| `pnpm dev`       | Start all apps in watch mode              |
-| `pnpm build`     | Build all apps & packages                 |
-| `pnpm lint`      | Lint all workspaces                       |
-| `pnpm typecheck` | Type-check all workspaces                 |
-| `pnpm format`    | Format all files with Prettier            |
-| `pnpm clean`     | Remove all build artifacts & node_modules |
+### Auth
 
----
+```bash
+# Register (first user or ADMIN_EMAIL → admin role)
+curl -X POST http://localhost:4000/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Alice","email":"alice@example.com","password":"password123"}'
 
-## 🏗 Tech Stack
+# Login
+curl -X POST http://localhost:4000/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"alice@example.com","password":"password123"}'
 
-### Storefront (`apps/web`)
+# Get current user (protected)
+curl http://localhost:4000/auth/me \
+  -H "Authorization: Bearer <token>"
+```
 
-- **Next.js 15** (App Router, RSC)
-- **TypeScript**
-- **Tailwind CSS**
+### Users
 
-### API (`apps/api`)
+```bash
+# Update profile (protected)
+curl -X PATCH http://localhost:4000/users/me \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Alice Updated"}'
+```
 
-- **NestJS 10**
-- **TypeScript**
-- **TypeORM** + **PostgreSQL**
-- **Redis** (caching / queues)
-- **JWT** authentication
+### Products
 
-### Shared
+```bash
+# List products (public, supports ?q=search&page=1&limit=12)
+curl http://localhost:4000/products
 
-- **pnpm workspaces** — monorepo management
-- **ESLint** + **Prettier** — code quality
-- **Docker Compose** — local infrastructure
+# Search
+curl "http://localhost:4000/products?q=keyboard&page=1&limit=6"
 
----
+# Get by slug (public)
+curl http://localhost:4000/products/mechanical-keyboard-pro
 
-## 📄 License
+# Create product (admin only)
+curl -X POST http://localhost:4000/products \
+  -H "Authorization: Bearer <admin-token>" \
+  -H "Content-Type: application/json" \
+  -d '{"title":"New Product","description":"...","price":99.99,"stock":50}'
+```
 
-MIT
+### Admin
+
+```bash
+# List all users (admin only)
+curl http://localhost:4000/admin/users \
+  -H "Authorization: Bearer <admin-token>"
+```
+
+## Scripts
+
+```bash
+pnpm dev              # Run all apps in parallel
+pnpm build            # Build all apps
+pnpm lint             # Lint all apps
+pnpm typecheck        # Typecheck all apps
+pnpm format           # Format with prettier
+pnpm clean            # Clean build artifacts
+```
+
+## Notes
+
+- **Auth**: First registered user (or user with `ADMIN_EMAIL`) gets `admin` role
+- **Data**: Products are seeded in-memory on API startup (15 demo products)
+- **DB**: Swap `UsersService` and `ProductsService` in-memory stores for TypeORM/Prisma repositories
+- **Token storage**: JWT stored in `localStorage` — swap to HttpOnly cookies for production
