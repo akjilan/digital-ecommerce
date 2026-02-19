@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Patch,
+  Delete,
   Param,
   Body,
   Query,
@@ -10,6 +11,8 @@ import {
   Request,
   NotFoundException,
   ForbiddenException,
+  HttpCode,
+  HttpStatus,
 } from "@nestjs/common";
 import { ProductsService } from "./products.service";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
@@ -18,8 +21,11 @@ import type { RequestWithUser } from "../auth/jwt.strategy";
 
 @Controller("products")
 export class ProductsController {
-  constructor(private readonly productsService: ProductsService) {}
+  constructor(private readonly productsService: ProductsService) { }
 
+  // ── Public endpoints ─────────────────────────────────────────────────────
+
+  /** GET /products — paginated public catalogue (active only) */
   @Get()
   findAll(@Query() query: ProductQueryDto) {
     const page = Math.max(1, parseInt(query.page ?? "1", 10));
@@ -27,6 +33,20 @@ export class ProductsController {
     return this.productsService.findAll(query.q, page, limit);
   }
 
+  // ── Protected endpoints ──────────────────────────────────────────────────
+
+  /**
+   * GET /products/mine
+   * Returns all products (all statuses) created by the authenticated user.
+   * Must be defined BEFORE ":slug" so Express doesn't treat "mine" as a slug.
+   */
+  @UseGuards(JwtAuthGuard)
+  @Get("mine")
+  findMine(@Request() req: RequestWithUser) {
+    return this.productsService.findByOwner(req.user.id);
+  }
+
+  /** GET /products/:slug — single product detail (public) */
   @Get(":slug")
   findOne(@Param("slug") slug: string) {
     const product = this.productsService.findBySlug(slug);
@@ -34,19 +54,53 @@ export class ProductsController {
     return product;
   }
 
+  /**
+   * POST /products
+   * Any authenticated user can create a product.
+   * The product's ownerId is automatically set to the caller's user id.
+   */
   @UseGuards(JwtAuthGuard)
   @Post()
   create(@Request() req: RequestWithUser, @Body() dto: CreateProductDto) {
-    if (req.user.role !== "admin") throw new ForbiddenException("Admin only");
-    return this.productsService.create(dto);
+    return this.productsService.create(dto, req.user.id);
   }
 
+  /**
+   * PATCH /products/:id
+   * Owner or admin can update. Uses id (not slug) for reliable lookup.
+   */
   @UseGuards(JwtAuthGuard)
   @Patch(":id")
-  update(@Request() req: RequestWithUser, @Param("id") id: string, @Body() dto: UpdateProductDto) {
-    if (req.user.role !== "admin") throw new ForbiddenException("Admin only");
-    const updated = this.productsService.update(id, dto);
-    if (!updated) throw new NotFoundException("Product not found");
-    return updated;
+  update(
+    @Request() req: RequestWithUser,
+    @Param("id") id: string,
+    @Body() dto: UpdateProductDto,
+  ) {
+    const product = this.productsService.findById(id);
+    if (!product) throw new NotFoundException("Product not found");
+
+    const isOwner = product.ownerId === req.user.id;
+    const isAdmin = req.user.role === "admin";
+    if (!isOwner && !isAdmin) throw new ForbiddenException("Not allowed");
+
+    return this.productsService.update(id, dto);
+  }
+
+  /**
+   * DELETE /products/:id
+   * Owner or admin can delete.
+   */
+  @UseGuards(JwtAuthGuard)
+  @Delete(":id")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  remove(@Request() req: RequestWithUser, @Param("id") id: string) {
+    const product = this.productsService.findById(id);
+    if (!product) throw new NotFoundException("Product not found");
+
+    const isOwner = product.ownerId === req.user.id;
+    const isAdmin = req.user.role === "admin";
+    if (!isOwner && !isAdmin) throw new ForbiddenException("Not allowed");
+
+    this.productsService.delete(id);
   }
 }

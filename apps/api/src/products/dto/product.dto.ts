@@ -1,3 +1,5 @@
+// ─── Product DTOs ─────────────────────────────────────────────────────────────
+
 export class CreateProductDto {
   title!: string;
   description!: string;
@@ -14,6 +16,7 @@ export class UpdateProductDto {
   price?: number;
   stock?: number;
   status?: "active" | "draft" | "archived";
+  images?: string[];
 }
 
 export class ProductQueryDto {

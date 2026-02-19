@@ -1,5 +1,7 @@
 export interface Product {
   id: string;
+  /** undefined = system-seeded product (no owner) */
+  ownerId?: string;
   title: string;
   slug: string;
   description: string;
@@ -12,3 +14,4 @@ export interface Product {
 }
 
 export type PublicProduct = Product;
+

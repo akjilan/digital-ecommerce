@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ShoppingBag, User, LogOut, LayoutDashboard, Menu, X } from "lucide-react";
+import { ShoppingBag, User, LogOut, LayoutDashboard, Menu, X, Package } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { getUser, clearAuth, type User as AuthUser } from "@/lib/auth";
@@ -95,6 +95,11 @@ export function Navbar() {
           <Link href="/products" className="btn btn-ghost btn-sm">
             Products
           </Link>
+          {user && (
+            <Link href="/my-products" className="btn btn-ghost btn-sm">
+              My Products
+            </Link>
+          )}
           {user?.role === "admin" && (
             <Link href="/admin/users" className="btn btn-ghost btn-sm">
               Admin
@@ -197,6 +202,14 @@ export function Navbar() {
                 style={{ justifyContent: "flex-start", gap: "0.5rem" }}
               >
                 <User style={{ width: "1rem", height: "1rem" }} /> {user.name}
+              </Link>
+              <Link
+                href="/my-products"
+                onClick={() => setMobileOpen(false)}
+                className="btn btn-ghost"
+                style={{ justifyContent: "flex-start", gap: "0.5rem" }}
+              >
+                <Package style={{ width: "1rem", height: "1rem" }} /> My Products
               </Link>
               {user.role === "admin" && (
                 <Link

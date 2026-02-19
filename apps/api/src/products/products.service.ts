@@ -212,10 +212,11 @@ export class ProductsService {
     return this.products.get(id);
   }
 
-  create(dto: CreateProductDto): Product {
+  create(dto: CreateProductDto, ownerId?: string): Product {
     const id = randomUUID();
     const product: Product = {
       id,
+      ownerId,
       title: dto.title,
       slug: slugify(dto.title),
       description: dto.description,
@@ -230,6 +231,11 @@ export class ProductsService {
     return product;
   }
 
+  /** Return all products (all statuses) belonging to a specific user */
+  findByOwner(ownerId: string): Product[] {
+    return Array.from(this.products.values()).filter((p) => p.ownerId === ownerId);
+  }
+
   update(id: string, dto: UpdateProductDto): Product | undefined {
     const existing = this.products.get(id);
     if (!existing) return undefined;
@@ -237,4 +243,9 @@ export class ProductsService {
     this.products.set(id, updated);
     return updated;
   }
+
+  delete(id: string): boolean {
+    return this.products.delete(id);
+  }
 }
+
