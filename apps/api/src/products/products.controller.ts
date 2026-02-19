@@ -48,8 +48,8 @@ export class ProductsController {
 
   /** GET /products/:slug — single product detail (public) */
   @Get(":slug")
-  findOne(@Param("slug") slug: string) {
-    const product = this.productsService.findBySlug(slug);
+  async findOne(@Param("slug") slug: string) {
+    const product = await this.productsService.findBySlug(slug);
     if (!product) throw new NotFoundException("Product not found");
     return product;
   }
@@ -71,12 +71,12 @@ export class ProductsController {
    */
   @UseGuards(JwtAuthGuard)
   @Patch(":id")
-  update(
+  async update(
     @Request() req: RequestWithUser,
     @Param("id") id: string,
     @Body() dto: UpdateProductDto,
   ) {
-    const product = this.productsService.findById(id);
+    const product = await this.productsService.findById(id);
     if (!product) throw new NotFoundException("Product not found");
 
     const isOwner = product.ownerId === req.user.id;
@@ -93,14 +93,14 @@ export class ProductsController {
   @UseGuards(JwtAuthGuard)
   @Delete(":id")
   @HttpCode(HttpStatus.NO_CONTENT)
-  remove(@Request() req: RequestWithUser, @Param("id") id: string) {
-    const product = this.productsService.findById(id);
+  async remove(@Request() req: RequestWithUser, @Param("id") id: string) {
+    const product = await this.productsService.findById(id);
     if (!product) throw new NotFoundException("Product not found");
 
     const isOwner = product.ownerId === req.user.id;
     const isAdmin = req.user.role === "admin";
     if (!isOwner && !isAdmin) throw new ForbiddenException("Not allowed");
 
-    this.productsService.delete(id);
+    await this.productsService.delete(id);
   }
 }

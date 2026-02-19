@@ -1,15 +1,13 @@
 import { Injectable } from "@nestjs/common";
-import { randomUUID } from "crypto";
 import * as bcrypt from "bcryptjs";
-import { type User, type PublicUser, toPublicUser, type UserRole } from "./user.entity";
-
-// ─── In-memory store ─────────────────────────────────────────────────────────
-// Replace this store with a TypeORM/Prisma repository to add DB support.
-// All methods return Promises to match the future repository interface.
+import { PrismaService } from "../prisma/prisma.service";
+import { type User, type PublicUser, type UserRole, toPublicUser } from "./user.entity";
 
 @Injectable()
 export class UsersService {
-  private readonly users: Map<string, User> = new Map();
+  constructor(private readonly prisma: PrismaService) { }
+
+  // ── Write ────────────────────────────────────────────────────────────────
 
   async create(
     name: string,
@@ -18,50 +16,79 @@ export class UsersService {
     role: UserRole = "user",
   ): Promise<User> {
     const passwordHash = await bcrypt.hash(password, 12);
-    const user: User = {
-      id: randomUUID(),
-      name,
-      email: email.toLowerCase().trim(),
-      passwordHash,
-      role,
-      createdAt: new Date(),
-    };
-    this.users.set(user.id, user);
-    return user;
+    const dbUser = await this.prisma.user.create({
+      data: {
+        name,
+        email: email.toLowerCase().trim(),
+        password: passwordHash,
+        role,
+      },
+    });
+    return this.toEntity(dbUser);
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
-  async findByEmail(email: string): Promise<User | undefined> {
-    const normalized = email.toLowerCase().trim();
-    for (const user of this.users.values()) {
-      if (user.email === normalized) return user;
-    }
-    return undefined;
-  }
-
-  // eslint-disable-next-line @typescript-eslint/require-await
-  async findById(id: string): Promise<User | undefined> {
-    return this.users.get(id);
-  }
-
-  // eslint-disable-next-line @typescript-eslint/require-await
   async update(
     id: string,
     data: { name?: string; passwordHash?: string },
   ): Promise<User | undefined> {
-    const user = this.users.get(id);
-    if (!user) return undefined;
-    const updated: User = { ...user, ...data };
-    this.users.set(id, updated);
-    return updated;
+    try {
+      const dbUser = await this.prisma.user.update({
+        where: { id },
+        data: {
+          ...(data.name !== undefined && { name: data.name }),
+          // passwordHash in entity = password column in DB
+          ...(data.passwordHash !== undefined && { password: data.passwordHash }),
+        },
+      });
+      return this.toEntity(dbUser);
+    } catch {
+      return undefined;
+    }
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
-  async findAll(): Promise<PublicUser[]> {
-    return Array.from(this.users.values()).map(toPublicUser);
+  // ── Read ─────────────────────────────────────────────────────────────────
+
+  async findByEmail(email: string): Promise<User | undefined> {
+    const normalized = email.toLowerCase().trim();
+    const dbUser = await this.prisma.user.findUnique({ where: { email: normalized } });
+    return dbUser ? this.toEntity(dbUser) : undefined;
   }
+
+  async findById(id: string): Promise<User | undefined> {
+    const dbUser = await this.prisma.user.findUnique({ where: { id } });
+    return dbUser ? this.toEntity(dbUser) : undefined;
+  }
+
+  async findAll(): Promise<PublicUser[]> {
+    const dbUsers = await this.prisma.user.findMany({ orderBy: { createdAt: "asc" } });
+    return dbUsers.map((u) => toPublicUser(this.toEntity(u)));
+  }
+
+  // ── Auth helpers ─────────────────────────────────────────────────────────
 
   async validatePassword(plain: string, hash: string): Promise<boolean> {
     return bcrypt.compare(plain, hash);
+  }
+
+  // ── Private mapper ───────────────────────────────────────────────────────
+  // Bridges the Prisma column name (`password`) to the entity field name
+  // (`passwordHash`) that the rest of the application expects.
+
+  private toEntity(dbUser: {
+    id: string;
+    name: string;
+    email: string;
+    password: string;
+    role: string;
+    createdAt: Date;
+  }): User {
+    return {
+      id: dbUser.id,
+      name: dbUser.name,
+      email: dbUser.email,
+      passwordHash: dbUser.password,
+      role: dbUser.role as UserRole,
+      createdAt: dbUser.createdAt,
+    };
   }
 }
