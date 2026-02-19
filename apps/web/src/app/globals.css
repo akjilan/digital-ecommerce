@@ -1,22 +1,46 @@
 @import "tailwindcss";
 
 /* ─── Design Tokens ─────────────────────────────────────────────────────────── */
-@theme {
+/*
+ * @theme inline lets Tailwind v4 generate utility classes from CSS variables.
+ * e.g. --color-foreground → text-foreground, bg-foreground
+ *      --color-card       → bg-card, text-card
+ *      --color-primary    → text-primary, bg-primary
+ * The values reference CSS custom properties so dark mode works automatically.
+ */
+@theme inline {
+  /* Brand */
   --color-primary:            #3b82f6;
   --color-primary-dark:       #2563eb;
   --color-primary-light:      #eff6ff;
-  --color-primary-fg:         #ffffff;
-
-  --color-secondary:          #f1f5f9;
-  --color-secondary-fg:       #0f172a;
+  --color-primary-foreground: #ffffff;
 
   --color-destructive:        #ef4444;
-  --color-destructive-fg:     #ffffff;
+  --color-destructive-foreground: #ffffff;
 
   --color-success:            #22c55e;
 
+  /* Semantic — backed by CSS vars so dark mode works */
+  --color-background:         var(--bg);
+  --color-foreground:         var(--fg);
+
+  --color-card:               var(--card-bg);
+  --color-card-foreground:    var(--card-fg);
+
+  --color-muted:              var(--muted-bg);
+  --color-muted-foreground:   var(--muted-fg);
+
+  --color-border:             var(--border);
+  --color-input:              var(--input-bg);
+  --color-ring:               var(--ring);
+
+  --color-accent:             var(--accent-bg);
+  --color-accent-foreground:  var(--accent-fg);
+
+  /* Typography */
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 
+  /* Radius */
   --radius-sm:  0.375rem;
   --radius-md:  0.5rem;
   --radius-lg:  0.75rem;
@@ -59,28 +83,36 @@
 }
 
 /* ─── Base reset ────────────────────────────────────────────────────────────── */
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+/*
+ * IMPORTANT: These rules must be inside @layer base.
+ * Tailwind v4 places utilities in @layer utilities (declared after base).
+ * Any unlayered CSS beats ALL layered CSS — so an unlayered "* { padding:0 }"
+ * would silently override every p-*, m-*, gap-* utility class.
+ */
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
 
-html {
-  scroll-behavior: smooth;
-}
+  html {
+    scroll-behavior: smooth;
+  }
 
-body {
-  background-color: var(--bg);
-  color: var(--fg);
-  font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  line-height: 1.6;
-  overflow-x: hidden;
-}
+  body {
+    background-color: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
 
-a { color: inherit; text-decoration: none; }
-img, video { max-width: 100%; height: auto; display: block; }
+  a { color: inherit; text-decoration: none; }
+  img, video { max-width: 100%; height: auto; display: block; }
+}
 
 /* ─── Container ─────────────────────────────────────────────────────────────── */
 .container {

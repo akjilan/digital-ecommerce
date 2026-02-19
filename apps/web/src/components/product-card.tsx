@@ -6,111 +6,60 @@ import type { Product } from "@/lib/products";
 
 export function ProductCard({ product }: { product: Product }) {
   return (
-    <Link href={`/products/${product.slug}`} style={{ display: "block", textDecoration: "none" }}>
-      <article
-        className="card"
-        style={{
-          overflow: "hidden",
-          transition: "transform 0.2s, box-shadow 0.2s",
-          display: "flex",
-          flexDirection: "column",
-          height: "100%",
-          cursor: "pointer",
-        }}
-        onMouseEnter={(e) => {
-          (e.currentTarget as HTMLElement).style.transform = "translateY(-4px)";
-          (e.currentTarget as HTMLElement).style.boxShadow = "0 12px 32px rgba(0,0,0,0.12)";
-        }}
-        onMouseLeave={(e) => {
-          (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
-          (e.currentTarget as HTMLElement).style.boxShadow = "0 1px 3px rgba(0,0,0,0.06)";
-        }}
-      >
+    <Link href={`/products/${product.slug}`} className="group block h-full">
+      <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
         {/* Image */}
-        <div
-          style={{
-            aspectRatio: "4/3",
-            overflow: "hidden",
-            backgroundColor: "var(--muted-bg)",
-          }}
-        >
+        <div className="relative aspect-[4/3] overflow-hidden bg-muted">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={product.images[0] ?? `https://picsum.photos/seed/${product.id}/800/600`}
             alt={product.title}
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              transition: "transform 0.35s",
-            }}
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         </div>
 
-        {/* Body */}
-        <div
-          style={{
-            padding: "1.25rem",
-            display: "flex",
-            flexDirection: "column",
-            flex: 1,
-          }}
-        >
-          <h3
-            style={{
-              fontWeight: 600,
-              fontSize: "0.9375rem",
-              lineHeight: 1.4,
-              color: "var(--fg)",
-              display: "-webkit-box",
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical",
-              overflow: "hidden",
-            }}
-          >
-            {product.title}
-          </h3>
+        {/* Content */}
+        <div className="">
+          <div className="flex flex-1 flex-col px-5 py-5 gap-2">
+            {/* Title */}
+            <h3 className="text-base font-semibold leading-snug text-foreground line-clamp-2 group-hover:text-primary transition-colors">
+              {product.title}
+            </h3>
 
-          <p
-            style={{
-              fontSize: "0.8125rem",
-              color: "var(--muted-fg)",
-              marginTop: "0.375rem",
-              flex: 1,
-              display: "-webkit-box",
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical",
-              overflow: "hidden",
-            }}
-          >
-            {product.description}
-          </p>
+            {/* Description */}
+            <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2 flex-1">
+              {product.description}
+            </p>
 
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              marginTop: "1rem",
-              paddingTop: "1rem",
-              borderTop: "1px solid var(--border)",
-            }}
-          >
-            <span
-              style={{
-                fontSize: "1.25rem",
-                fontWeight: 800,
-                color: "var(--color-primary)",
-              }}
-            >
-              ${product.price.toFixed(2)}
-            </span>
-            <Badge variant={product.stock > 10 ? "secondary" : "destructive"}>
-              {product.stock > 10 ? "In Stock" : `${product.stock} left`}
-            </Badge>
+            {/* Footer */}
+            <div className="flex items-center justify-between pt-4 mt-2 border-t border-border">
+              <span className="text-xl font-extrabold text-primary tracking-tight">
+                ${product.price.toFixed(2)}
+              </span>
+              <Badge variant={product.stock > 10 ? "secondary" : "destructive"}>
+                {product.stock > 10 ? "In Stock" : `${product.stock} left`}
+              </Badge>
+            </div>
           </div>
         </div>
       </article>
     </Link>
+  );
+}
+
+export function ProductSkeleton() {
+  return (
+    <div className="flex flex-col overflow-hidden rounded-2xl border border-border bg-card animate-pulse">
+      <div className="aspect-[4/3] bg-muted" />
+      <div className="p-5 flex flex-col gap-3">
+        <div className="h-4 rounded-full w-3/4 bg-muted" />
+        <div className="h-3 rounded-full w-full bg-muted" />
+        <div className="h-3 rounded-full w-2/3 bg-muted" />
+        <div className="flex justify-between items-center pt-3 mt-1 border-t border-border">
+          <div className="h-5 rounded-full w-16 bg-muted" />
+          <div className="h-5 rounded-full w-14 bg-muted" />
+        </div>
+      </div>
+    </div>
   );
 }

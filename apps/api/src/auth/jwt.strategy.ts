@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import { ExtractJwt, Strategy } from "passport-jwt";
+import { ConfigService } from "@nestjs/config";
 import type { PublicUser } from "../users/user.entity";
 
 export interface JwtPayload {
@@ -15,11 +16,12 @@ export interface RequestWithUser extends Request {
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor() {
+  constructor(config: ConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: process.env.JWT_SECRET ?? "fallback-secret-change-me",
+      // ConfigService is fully initialised here — reads the real JWT_SECRET
+      secretOrKey: config.get<string>("JWT_SECRET") ?? "fallback-secret-change-me",
     });
   }
 

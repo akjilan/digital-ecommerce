@@ -2,7 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, User, LogOut, Save, KeyRound, Mail, AtSign } from "lucide-react";
+import {
+  Loader2,
+  User,
+  LogOut,
+  Save,
+  KeyRound,
+  Mail,
+  AtSign,
+  ShieldCheck,
+  Pencil,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,13 +35,13 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   useEffect(() => {
-    const token = getToken();
-    if (!token) {
-      router.push("/auth/login");
-      return;
-    }
+    // Layout guard already ensures a token exists before this page mounts.
+    // We still call apiMe() to validate the token hasn't expired and to
+    // fetch the latest user data from the server.
+    const token = getToken()!;
     apiMe(token)
       .then(({ user: freshUser }) => {
         setUser(freshUser);
@@ -53,12 +63,22 @@ export default function ProfilePage() {
       const updates: { name?: string; password?: string } = {};
       if (name !== user.name) updates.name = name;
       if (newPassword) {
+        if (newPassword !== confirmPassword) {
+          toast({
+            title: "Passwords don't match",
+            description: "New password and confirm password must be the same",
+            variant: "destructive",
+          });
+          setSaving(false);
+          return;
+        }
         if (newPassword.length < 8) {
           toast({
-            title: "Error",
+            title: "Password too short",
             description: "Password must be at least 8 characters",
             variant: "destructive",
           });
+          setSaving(false);
           return;
         }
         updates.password = newPassword;
@@ -71,6 +91,7 @@ export default function ProfilePage() {
       setUser(updated);
       setAuth(updated, token);
       setNewPassword("");
+      setConfirmPassword("");
       toast({ title: "Profile updated!", description: "Your changes have been saved." });
     } catch (err) {
       toast({
@@ -91,8 +112,22 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-[var(--color-primary)]" />
+      <div
+        style={{
+          minHeight: "calc(100vh - 4rem)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Loader2
+          style={{
+            width: "2rem",
+            height: "2rem",
+            animation: "spin 1s linear infinite",
+            color: "var(--color-primary)",
+          }}
+        />
       </div>
     );
   }
@@ -107,123 +142,451 @@ export default function ProfilePage() {
     .slice(0, 2);
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] py-10">
-      <div className="container max-w-3xl">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+    <div style={{ minHeight: "calc(100vh - 4rem)", padding: "3.5rem 0 5rem" }}>
+      <div className="container" style={{ maxWidth: "44rem" }}>
+        {/* ── Page header ──────────────────────────────────────── */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            marginBottom: "2.5rem",
+            flexWrap: "wrap",
+            gap: "1rem",
+          }}
+        >
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">My Profile</h1>
-            <p className="text-[var(--color-muted-foreground)] mt-1">
-              Manage your account settings
+            <p
+              style={{
+                fontSize: "0.8125rem",
+                fontWeight: 600,
+                color: "var(--color-primary)",
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                marginBottom: "0.375rem",
+              }}
+            >
+              Account
+            </p>
+            <h1
+              style={{
+                fontSize: "clamp(1.75rem, 3vw, 2.25rem)",
+                fontWeight: 800,
+                letterSpacing: "-0.025em",
+                color: "var(--fg)",
+                lineHeight: 1.15,
+              }}
+            >
+              My Profile
+            </h1>
+            <p style={{ color: "var(--muted-fg)", marginTop: "0.375rem", fontSize: "0.9375rem" }}>
+              Manage your personal information and security settings
             </p>
           </div>
-          <Button variant="outline" onClick={handleLogout} className="rounded-xl">
-            <LogOut className="mr-2 h-4 w-4" /> Sign out
-          </Button>
+
+          <button
+            onClick={handleLogout}
+            className="btn btn-outline"
+            style={{ height: "2.5rem", padding: "0 1.125rem", borderRadius: "0.625rem" }}
+          >
+            <LogOut style={{ width: "0.9rem", height: "0.9rem" }} />
+            Sign out
+          </button>
         </div>
 
-        {/* Profile card */}
-        <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] p-6 mb-6">
-          <div className="flex items-center gap-5">
+        {/* ── Identity card ────────────────────────────────────── */}
+        <div
+          className="card"
+          style={{
+            padding: "1.75rem",
+            marginBottom: "1.25rem",
+            display: "flex",
+            alignItems: "center",
+            gap: "1.25rem",
+            position: "relative",
+            overflow: "hidden",
+          }}
+        >
+          {/* Subtle gradient accent */}
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background:
+                "radial-gradient(ellipse 60% 80% at 0% 50%, rgba(59,130,246,0.07), transparent)",
+              pointerEvents: "none",
+            }}
+          />
+
+          {/* Avatar */}
+          <div
+            style={{
+              width: "4.5rem",
+              height: "4.5rem",
+              borderRadius: "1rem",
+              background: "linear-gradient(135deg, var(--color-primary) 0%, #7c3aed 100%)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "1.375rem",
+              fontWeight: 800,
+              color: "#fff",
+              flexShrink: 0,
+              boxShadow: "0 4px 14px rgba(59,130,246,0.35)",
+              letterSpacing: "-0.02em",
+            }}
+          >
+            {initials}
+          </div>
+
+          {/* Name + role */}
+          <div style={{ flex: 1, minWidth: 0 }}>
             <div
-              className="h-16 w-16 rounded-2xl flex items-center justify-center text-xl font-bold text-white shrink-0"
-              style={{ background: "linear-gradient(135deg, var(--color-primary), #7c3aed)" }}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.625rem",
+                flexWrap: "wrap",
+                marginBottom: "0.25rem",
+              }}
             >
-              {initials}
+              <span
+                style={{
+                  fontSize: "1.125rem",
+                  fontWeight: 700,
+                  color: "var(--fg)",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {user.name}
+              </span>
+              <Badge variant={user.role === "admin" ? "default" : "secondary"}>{user.role}</Badge>
             </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-lg font-bold truncate">{user.name}</h2>
-                <Badge variant={user.role === "admin" ? "default" : "secondary"}>{user.role}</Badge>
+            <p
+              style={{
+                fontSize: "0.875rem",
+                color: "var(--muted-fg)",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {user.email}
+            </p>
+          </div>
+        </div>
+
+        {/* ── Info tiles row ───────────────────────────────────── */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, 1fr)",
+            gap: "0.875rem",
+            marginBottom: "1.25rem",
+          }}
+        >
+          {[
+            { icon: AtSign, label: "Username", value: user.name },
+            { icon: Mail, label: "Email", value: user.email },
+            { icon: ShieldCheck, label: "Role", value: user.role },
+          ].map(({ icon: Icon, label, value }) => (
+            <div key={label} className="card" style={{ padding: "1rem 1.125rem" }}>
+              <div
+                style={{
+                  width: "2.125rem",
+                  height: "2.125rem",
+                  borderRadius: "0.625rem",
+                  backgroundColor: "color-mix(in srgb, var(--color-primary) 12%, transparent)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginBottom: "0.75rem",
+                }}
+              >
+                <Icon
+                  style={{ width: "0.9375rem", height: "0.9375rem", color: "var(--color-primary)" }}
+                />
               </div>
-              <p className="text-sm text-[var(--color-muted-foreground)] mt-0.5 truncate">
-                {user.email}
+              <p
+                style={{
+                  fontSize: "0.75rem",
+                  color: "var(--muted-fg)",
+                  marginBottom: "0.2rem",
+                  fontWeight: 500,
+                }}
+              >
+                {label}
+              </p>
+              <p
+                style={{
+                  fontSize: "0.875rem",
+                  fontWeight: 700,
+                  color: "var(--fg)",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {value}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Edit form card ───────────────────────────────────── */}
+        <div className="card" style={{ padding: "1.75rem" }}>
+          {/* Card header */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "0.75rem",
+              marginBottom: "1.75rem",
+              paddingBottom: "1.25rem",
+              borderBottom: "1px solid var(--border)",
+            }}
+          >
+            <div
+              style={{
+                width: "2.25rem",
+                height: "2.25rem",
+                borderRadius: "0.625rem",
+                background: "linear-gradient(135deg, var(--color-primary) 0%, #7c3aed 100%)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              <Pencil style={{ width: "0.875rem", height: "0.875rem", color: "#fff" }} />
+            </div>
+            <div>
+              <h2 style={{ fontSize: "1.0625rem", fontWeight: 700, color: "var(--fg)" }}>
+                Edit Profile
+              </h2>
+              <p style={{ fontSize: "0.8125rem", color: "var(--muted-fg)", marginTop: "0.1rem" }}>
+                Update your name or change your password
               </p>
             </div>
           </div>
 
-          {/* Info row */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6 pt-6 border-t border-[var(--color-border)]">
-            {[
-              { icon: AtSign, label: "Username", value: user.name },
-              { icon: Mail, label: "Email", value: user.email },
-              { icon: User, label: "Role", value: user.role },
-            ].map(({ icon: Icon, label, value }) => (
-              <div key={label} className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-xl bg-[var(--color-primary)]/10 flex items-center justify-center shrink-0">
-                  <Icon className="h-4 w-4 text-[var(--color-primary)]" />
-                </div>
-                <div className="min-w-0">
-                  <div className="text-xs text-[var(--color-muted-foreground)]">{label}</div>
-                  <div className="text-sm font-medium truncate">{value}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Edit form */}
-        <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] p-6">
-          <div className="mb-6">
-            <h3 className="text-lg font-bold">Edit Profile</h3>
-            <p className="text-sm text-[var(--color-muted-foreground)] mt-0.5">
-              Update your name or change your password
-            </p>
-          </div>
-
-          <form onSubmit={handleSave} className="space-y-5">
-            <div className="space-y-1.5">
-              <Label htmlFor="profile-name">Full Name</Label>
-              <Input
+          {/* Form */}
+          <form onSubmit={handleSave}>
+            {/* Full Name */}
+            <div style={{ marginBottom: "1.375rem" }}>
+              <label
+                htmlFor="profile-name"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.375rem",
+                  fontSize: "0.875rem",
+                  fontWeight: 600,
+                  color: "var(--fg)",
+                  marginBottom: "0.5rem",
+                }}
+              >
+                <User style={{ width: "0.875rem", height: "0.875rem", color: "var(--muted-fg)" }} />
+                Full Name
+              </label>
+              <input
                 id="profile-name"
+                className="input"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Your name"
-                className="rounded-xl h-11"
+                placeholder="Your full name"
+                style={{ borderRadius: "0.625rem" }}
               />
             </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="profile-email">Email</Label>
-              <Input
+            {/* Email (read-only) */}
+            <div style={{ marginBottom: "1.375rem" }}>
+              <label
+                htmlFor="profile-email"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.375rem",
+                  fontSize: "0.875rem",
+                  fontWeight: 600,
+                  color: "var(--fg)",
+                  marginBottom: "0.5rem",
+                }}
+              >
+                <Mail style={{ width: "0.875rem", height: "0.875rem", color: "var(--muted-fg)" }} />
+                Email Address
+              </label>
+              <input
                 id="profile-email"
+                className="input"
                 value={user.email}
                 disabled
-                className="rounded-xl h-11 opacity-60"
+                style={{ borderRadius: "0.625rem", opacity: 0.55, cursor: "not-allowed" }}
               />
-              <p className="text-xs text-[var(--color-muted-foreground)]">
-                Email cannot be changed
+              <p
+                style={{
+                  fontSize: "0.78125rem",
+                  color: "var(--muted-fg)",
+                  marginTop: "0.4rem",
+                  paddingLeft: "0.125rem",
+                }}
+              >
+                Email address cannot be changed
               </p>
             </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="new-password">
-                <KeyRound className="inline h-3.5 w-3.5 mr-1" />
+            {/* Divider */}
+            <div
+              style={{
+                borderTop: "1px solid var(--border)",
+                margin: "1.625rem 0",
+              }}
+            />
+
+            {/* New Password */}
+            <div style={{ marginBottom: "1.25rem" }}>
+              <label
+                htmlFor="new-password"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.375rem",
+                  fontSize: "0.875rem",
+                  fontWeight: 600,
+                  color: "var(--fg)",
+                  marginBottom: "0.5rem",
+                }}
+              >
+                <KeyRound
+                  style={{ width: "0.875rem", height: "0.875rem", color: "var(--muted-fg)" }}
+                />
                 New Password
-              </Label>
-              <Input
+              </label>
+              <input
                 id="new-password"
+                className="input"
                 type="password"
-                placeholder="Leave blank to keep current"
+                placeholder="Leave blank to keep current password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 autoComplete="new-password"
-                className="rounded-xl h-11"
+                style={{ borderRadius: "0.625rem" }}
               />
+              <p
+                style={{
+                  fontSize: "0.78125rem",
+                  color: "var(--muted-fg)",
+                  marginTop: "0.4rem",
+                  paddingLeft: "0.125rem",
+                }}
+              >
+                Minimum 8 characters required
+              </p>
             </div>
 
-            <div className="pt-2">
-              <Button type="submit" disabled={saving} className="rounded-xl h-11 px-6">
+            {/* Confirm Password */}
+            <div style={{ marginBottom: "1.75rem" }}>
+              <label
+                htmlFor="confirm-password"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.375rem",
+                  fontSize: "0.875rem",
+                  fontWeight: 600,
+                  color: "var(--fg)",
+                  marginBottom: "0.5rem",
+                }}
+              >
+                <KeyRound
+                  style={{ width: "0.875rem", height: "0.875rem", color: "var(--muted-fg)" }}
+                />
+                Confirm New Password
+              </label>
+              <input
+                id="confirm-password"
+                className="input"
+                type="password"
+                placeholder="Re-enter new password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                autoComplete="new-password"
+                style={{
+                  borderRadius: "0.625rem",
+                  borderColor:
+                    confirmPassword && newPassword && confirmPassword !== newPassword
+                      ? "var(--color-destructive)"
+                      : undefined,
+                  boxShadow:
+                    confirmPassword && newPassword && confirmPassword !== newPassword
+                      ? "0 0 0 3px color-mix(in srgb, var(--color-destructive) 18%, transparent)"
+                      : undefined,
+                }}
+              />
+              {confirmPassword && newPassword && confirmPassword !== newPassword && (
+                <p
+                  style={{
+                    fontSize: "0.78125rem",
+                    color: "var(--color-destructive)",
+                    marginTop: "0.4rem",
+                    paddingLeft: "0.125rem",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.3rem",
+                  }}
+                >
+                  Passwords do not match
+                </p>
+              )}
+              {confirmPassword && newPassword && confirmPassword === newPassword && (
+                <p
+                  style={{
+                    fontSize: "0.78125rem",
+                    color: "var(--color-success)",
+                    marginTop: "0.4rem",
+                    paddingLeft: "0.125rem",
+                  }}
+                >
+                  ✓ Passwords match
+                </p>
+              )}
+            </div>
+
+            {/* Submit */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "flex-end",
+                paddingTop: "0.25rem",
+              }}
+            >
+              <button
+                type="submit"
+                disabled={saving}
+                className="btn btn-primary btn-md"
+                style={{ borderRadius: "0.625rem", minWidth: "8.5rem" }}
+              >
                 {saving ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving…
+                    <Loader2
+                      style={{
+                        width: "0.9rem",
+                        height: "0.9rem",
+                        animation: "spin 1s linear infinite",
+                      }}
+                    />
+                    Saving…
                   </>
                 ) : (
                   <>
-                    <Save className="mr-2 h-4 w-4" /> Save changes
+                    <Save style={{ width: "0.9rem", height: "0.9rem" }} />
+                    Save changes
                   </>
                 )}
-              </Button>
+              </button>
             </div>
           </form>
         </div>

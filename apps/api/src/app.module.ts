@@ -5,10 +5,17 @@ import { AuthModule } from "./auth/auth.module";
 import { UsersModule } from "./users/users.module";
 import { ProductsModule } from "./products/products.module";
 import { AdminController } from "./admin/admin.controller";
+import { SeedModule } from "./seed/seed.module";
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), AuthModule, UsersModule, ProductsModule],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    AuthModule,
+    UsersModule,
+    ProductsModule,
+    SeedModule,
+  ],
   controllers: [AppController, AdminController],
   providers: [],
 })
-export class AppModule {}
+export class AppModule { }
