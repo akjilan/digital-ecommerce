@@ -121,7 +121,7 @@ export default function LoginPage() {
             >
               <ShoppingBag style={{ width: "1rem", height: "1rem", color: "#fff" }} />
             </span>
-            <span style={{ fontWeight: 700, fontSize: "1.0625rem" }}>digital-ecommerce</span>
+            <span style={{ fontWeight: 700, fontSize: "1.0625rem" }}>DIGISUPERSHOP</span>
           </div>
 
           <div style={{ marginBottom: "2rem" }}>

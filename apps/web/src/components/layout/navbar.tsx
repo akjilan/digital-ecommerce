@@ -78,7 +78,7 @@ export function Navbar() {
           >
             <ShoppingBag style={{ width: "1rem", height: "1rem", color: "#fff" }} />
           </span>
-          <span className="hidden sm:block">digital-ecommerce</span>
+          <span className="hidden sm:block">DIGISUPERSHOP</span>
         </Link>
 
         {/* Desktop Nav */}
@@ -158,17 +158,19 @@ export function Navbar() {
           )}
 
           {/* Mobile toggle */}
-          <button
-            className="btn btn-ghost btn-icon md:hidden"
-            onClick={() => setMobileOpen((v) => !v)}
-            aria-label="Toggle menu"
-          >
-            {mobileOpen ? (
-              <X style={{ width: "1.25rem", height: "1.25rem" }} />
-            ) : (
-              <Menu style={{ width: "1.25rem", height: "1.25rem" }} />
-            )}
-          </button>
+          <div className="block md:hidden">
+            <button
+              className="btn btn-ghost btn-icon md:hidden"
+              onClick={() => setMobileOpen((v) => !v)}
+              aria-label="Toggle menu"
+            >
+              {mobileOpen ? (
+                <X style={{ width: "1.25rem", height: "1.25rem" }} />
+              ) : (
+                <Menu style={{ width: "1.25rem", height: "1.25rem" }} />
+              )}
+            </button>
+          </div>
         </div>
       </div>
 

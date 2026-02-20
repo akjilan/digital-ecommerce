@@ -106,3 +106,15 @@ export async function apiUpdateProfile(
 ): Promise<{ user: User }> {
     return apiFetch<{ user: User }>("/users/me", { method: "PATCH", body: JSON.stringify(data) }, token);
 }
+
+export async function apiToggleWishlist(token: string, productId: string): Promise<{ saved: boolean }> {
+    return apiFetch<{ saved: boolean }>(`/products/${productId}/wishlist`, { method: "POST" }, token);
+}
+
+export async function apiGetWishlist(token: string): Promise<any[]> {
+    return apiFetch<any[]>("/products/wishlist", {}, token);
+}
+
+export async function apiCheckWishlist(token: string, productId: string): Promise<{ isSaved: boolean }> {
+    return apiFetch<{ isSaved: boolean }>(`/products/${productId}/wishlist`, {}, token);
+}

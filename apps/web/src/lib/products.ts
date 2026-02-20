@@ -13,14 +13,37 @@ export interface Product {
     images: string[];
     stock: number;
     status: "active" | "draft" | "archived";
+    type: "physical" | "digital";
+    region?: string;
+    sizes: string[];
+    colors: string[];
     createdAt: string;
 }
 
 export interface ProductsResponse {
     data: Product[];
-    total: number;
-    page: number;
-    limit: number;
+    pagination: {
+        page: number;
+        limit: number;
+        total: number;
+        totalPages: number;
+    };
+}
+
+export type SortOption = "newest" | "price_asc" | "price_desc";
+
+export interface ProductFilters {
+    q?: string;
+    page?: number;
+    limit?: number;
+    minPrice?: number;
+    maxPrice?: number;
+    inStock?: boolean;
+    type?: "physical" | "digital" | "";
+    region?: string;
+    sizes?: string[];
+    colors?: string[];
+    sort?: SortOption;
 }
 
 export interface CreateProductPayload {
@@ -31,6 +54,10 @@ export interface CreateProductPayload {
     status?: "active" | "draft" | "archived";
     images?: string[];
     currency?: string;
+    type?: "physical" | "digital";
+    region?: string;
+    sizes?: string[];
+    colors?: string[];
 }
 
 export interface UpdateProductPayload {
@@ -40,6 +67,10 @@ export interface UpdateProductPayload {
     stock?: number;
     status?: "active" | "draft" | "archived";
     images?: string[];
+    type?: "physical" | "digital";
+    region?: string;
+    sizes?: string[];
+    colors?: string[];
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -61,19 +92,23 @@ async function handleResponse<T>(res: Response): Promise<T> {
 
 // ─── Public API ───────────────────────────────────────────────────────────────
 
-/** Fetch paginated public product catalogue (active products only) */
-export async function getProducts(params?: {
-    q?: string;
-    page?: number;
-    limit?: number;
-}): Promise<ProductsResponse> {
+/** Fetch paginated public product catalogue with full filter support */
+export async function getProducts(filters?: ProductFilters): Promise<ProductsResponse> {
     const query = new URLSearchParams();
-    if (params?.q) query.set("q", params.q);
-    if (params?.page) query.set("page", String(params.page));
-    if (params?.limit) query.set("limit", String(params.limit));
+    if (filters?.q) query.set("q", filters.q);
+    if (filters?.page) query.set("page", String(filters.page));
+    if (filters?.limit) query.set("limit", String(filters.limit));
+    if (filters?.minPrice !== undefined) query.set("minPrice", String(filters.minPrice));
+    if (filters?.maxPrice !== undefined) query.set("maxPrice", String(filters.maxPrice));
+    if (filters?.inStock) query.set("inStock", "true");
+    if (filters?.type) query.set("type", filters.type);
+    if (filters?.region) query.set("region", filters.region);
+    if (filters?.sizes?.length) query.set("sizes", filters.sizes.join(","));
+    if (filters?.colors?.length) query.set("colors", filters.colors.join(","));
+    if (filters?.sort) query.set("sort", filters.sort);
 
     const res = await fetch(`${BASE}/products?${query.toString()}`, {
-        next: { revalidate: 60 },
+        cache: "no-store",
     });
     if (!res.ok) throw new Error("Failed to fetch products");
     return res.json() as Promise<ProductsResponse>;

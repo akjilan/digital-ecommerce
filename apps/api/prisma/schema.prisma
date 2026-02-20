@@ -8,26 +8,50 @@ datasource db {
 }
 
 model User {
-  id        String    @id @default(uuid())
+  id        String     @id @default(uuid())
   name      String
-  email     String    @unique
+  email     String     @unique
   password  String
-  role      String    @default("user")
-  createdAt DateTime  @default(now())
+  role      String     @default("user")
+  createdAt DateTime   @default(now())
   products  Product[]
+  wishlist  Wishlist[]
 }
 
 model Product {
-  id          String   @id @default(uuid())
+  id          String     @id @default(uuid())
   title       String
-  slug        String   @unique
+  slug        String     @unique
   description String
   price       Float
-  stock       Int      @default(0)
-  status      String   @default("draft")
+  stock       Int        @default(0)
+  status      String     @default("draft")
   images      String[]
-  currency    String   @default("USD")
-  createdAt   DateTime @default(now())
+  currency    String     @default("USD")
+  type        String     @default("physical") // physical | digital
+  region      String?    // e.g. US, EU, Asia
+  sizes       String[]   // e.g. ["S","M","L","XL"]
+  colors      String[]   // e.g. ["Black","Red","White"]
+  createdAt   DateTime   @default(now())
   userId      String?
-  user        User?    @relation(fields: [userId], references: [id])
+  user        User?      @relation(fields: [userId], references: [id])
+  wishlistedBy Wishlist[]
+
+  @@index([price])
+  @@index([type])
+  @@index([region])
+}
+
+model Wishlist {
+  id        String   @id @default(uuid())
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([userId])
+  @@index([productId])
 }

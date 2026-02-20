@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   Loader2,
   User,
@@ -24,8 +25,11 @@ import {
   apiUpdateProfile,
   setAuth,
   type User as AuthUser,
+  apiGetWishlist,
+  apiToggleWishlist,
 } from "@/lib/auth";
 import { useToast } from "@/components/ui/toaster";
+import { Heart, Trash2 } from "lucide-react";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -36,22 +40,33 @@ export default function ProfilePage() {
   const [name, setName] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [wishlist, setWishlist] = useState<any[]>([]);
+  const [wishlistLoading, setWishlistLoading] = useState(true);
 
   useEffect(() => {
     // Layout guard already ensures a token exists before this page mounts.
     // We still call apiMe() to validate the token hasn't expired and to
     // fetch the latest user data from the server.
     const token = getToken()!;
+
+    // Fetch profile
     apiMe(token)
       .then(({ user: freshUser }) => {
         setUser(freshUser);
         setName(freshUser.name);
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error("Profile fetch error:", err);
         clearAuth();
         router.push("/auth/login");
       })
       .finally(() => setLoading(false));
+
+    // Fetch wishlist
+    apiGetWishlist(token)
+      .then((items) => setWishlist(items))
+      .catch((err) => console.error("Wishlist fetch error:", err))
+      .finally(() => setWishlistLoading(false));
   }, [router]);
 
   async function handleSave(e: React.FormEvent) {
@@ -108,6 +123,26 @@ export default function ProfilePage() {
     clearAuth();
     toast({ title: "Signed out", description: "See you next time!" });
     router.push("/");
+  }
+
+  async function handleUnsave(productId: string) {
+    const token = getToken();
+    if (!token) return;
+
+    try {
+      await apiToggleWishlist(token, productId);
+      setWishlist((prev) => prev.filter((item) => item.id !== productId));
+      toast({
+        title: "Removed from saves",
+        description: "The product has been removed from your saved list.",
+      });
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to remove item from saved list.",
+        variant: "destructive",
+      });
+    }
   }
 
   if (loading) {
@@ -589,6 +624,132 @@ export default function ProfilePage() {
               </button>
             </div>
           </form>
+        </div>
+
+        {/* ── Saved products section ─────────────────────────────────── */}
+        <div style={{ marginTop: "2.5rem" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "0.75rem",
+              marginBottom: "1.5rem",
+            }}
+          >
+            <div
+              style={{
+                width: "2.25rem",
+                height: "2.25rem",
+                borderRadius: "0.625rem",
+                background: "linear-gradient(135deg, #ec4899 0%, #db2777 100%)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Heart
+                style={{
+                  width: "0.875rem",
+                  height: "0.875rem",
+                  color: "#fff",
+                  fill: "currentColor",
+                }}
+              />
+            </div>
+            <div>
+              <h2 style={{ fontSize: "1.0625rem", fontWeight: 700, color: "var(--fg)" }}>
+                Saved Products
+              </h2>
+              <p style={{ fontSize: "0.8125rem", color: "var(--muted-fg)", marginTop: "0.1rem" }}>
+                Items you've bookmarked for later
+              </p>
+            </div>
+          </div>
+
+          {wishlistLoading ? (
+            <div className="card" style={{ padding: "3rem", textAlign: "center" }}>
+              <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground mb-2" />
+              <p className="text-sm text-muted-foreground">Loading your saves...</p>
+            </div>
+          ) : wishlist.length === 0 ? (
+            <div className="card" style={{ padding: "3rem", textAlign: "center" }}>
+              <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+                <Heart className="h-6 w-6 text-muted-foreground" />
+              </div>
+              <h3 className="font-semibold text-fg mb-1">No saved products yet</h3>
+              <p className="text-sm text-muted-foreground mb-6">
+                Products you save will appear here for easy access.
+              </p>
+              <Button variant="outline" size="sm" asChild className="rounded-xl">
+                <Link href="/products">Browse Products</Link>
+              </Button>
+            </div>
+          ) : (
+            <div style={{ display: "grid", gap: "0.75rem" }}>
+              {wishlist.map((product) => (
+                <div
+                  key={product.id}
+                  className="card"
+                  style={{
+                    padding: "0.875rem",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "1rem",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "4rem",
+                      height: "4rem",
+                      borderRadius: "0.5rem",
+                      overflow: "hidden",
+                      backgroundColor: "var(--muted)",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {product.images?.[0] ? (
+                      <img
+                        src={product.images[0]}
+                        alt={product.title}
+                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <Heart className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <Link
+                      href={`/products/${product.slug}`}
+                      className="font-semibold text-fg hover:text-primary transition-colors block truncate"
+                    >
+                      {product.title}
+                    </Link>
+                    <p className="text-sm font-bold text-primary">
+                      {product.currency} {product.price.toFixed(2)}
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                    onClick={() => handleUnsave(product.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
