@@ -630,7 +630,7 @@ export default function ProductsPage() {
         <div className="container py-8">
           <div className="products-layout">
             {/* ── Desktop Sidebar ─────────────────────────────────────── */}
-            <div className="hidden lg:block">
+            <div className="hidden lg:block sticky top-20">
               <FilterSidebar
                 filters={filters}
                 searchInput={searchInput}

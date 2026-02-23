@@ -82,7 +82,7 @@ export default async function HomePage() {
               color: "var(--fg)",
             }}
           >
-            Shop the Future of{" "}
+            Shop the Future of <br />
             <span
               style={{
                 background: "linear-gradient(135deg, var(--color-primary) 0%, #8b5cf6 100%)",
