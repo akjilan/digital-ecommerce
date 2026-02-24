@@ -14,6 +14,7 @@ model User {
   password  String
   role      String     @default("user")
   createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
   products      Product[]
   wishlist      Wishlist[]
   chatMessages  ChatMessage[]
@@ -34,6 +35,7 @@ model Product {
   sizes       String[]   // e.g. ["S","M","L","XL"]
   colors      String[]   // e.g. ["Black","Red","White"]
   createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
   userId      String?
   user        User?      @relation(fields: [userId], references: [id])
   wishlistedBy Wishlist[]
@@ -48,6 +50,7 @@ model Wishlist {
   userId    String
   productId String
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
@@ -64,6 +67,7 @@ model ChatMessage {
   role      String   // "user" | "assistant"
   content   String
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
 }

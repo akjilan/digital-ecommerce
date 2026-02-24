@@ -41,7 +41,7 @@ export class AiService {
         // (Reverted from pgvector similarity search as requested)
         const fallback = await this.prisma.product.findMany({
             where: { status: "active" },
-            take: 5,
+            take: 30,
             orderBy: { createdAt: "desc" },
             select: {
                 id: true,
@@ -94,7 +94,7 @@ INSTRUCTIONS:
             ? await this.prisma.chatMessage.findMany({
                 where: { userId },
                 orderBy: { createdAt: "desc" },
-                take: 6,
+                take: 5,
                 select: { role: true, content: true },
             })
             : [];
@@ -141,7 +141,7 @@ INSTRUCTIONS:
         return this.prisma.chatMessage.findMany({
             where: { userId },
             orderBy: { createdAt: "asc" },
-            take: 20,
+            take: 10,
             select: {
                 id: true,
                 role: true,
