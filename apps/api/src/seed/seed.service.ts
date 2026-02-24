@@ -21,27 +21,26 @@ export class SeedService implements OnApplicationBootstrap {
     ) { }
 
     async onApplicationBootstrap() {
-        await this.seedUser(
-            this.config.get("SEED_ADMIN_EMAIL") || "admin@example.com",
-            this.config.get("SEED_ADMIN_PASSWORD") || "Admin1234!",
-            "Admin User",
-            "admin",
-        );
+        try {
+            await this.seedUser(
+                this.config.get("SEED_ADMIN_EMAIL") || "admin@example.com",
+                this.config.get("SEED_ADMIN_PASSWORD") || "Admin1234!",
+                "Admin User",
+                "admin",
+            );
 
-        await this.seedUser(
-            this.config.get("SEED_USER_EMAIL") || "user@example.com",
-            this.config.get("SEED_USER_PASSWORD") || "User1234!",
-            "Test User",
-            "user",
-        );
+            await this.seedUser(
+                this.config.get("SEED_USER_EMAIL") || "user@example.com",
+                this.config.get("SEED_USER_PASSWORD") || "User1234!",
+                "Test User",
+                "user",
+            );
+        } catch (error) {
+            this.logger.warn("Seeding skipped: Database tables may not exist yet.");
+        }
     }
 
-    private async seedUser(
-        email: string,
-        password: string,
-        name: string,
-        role: "admin" | "user",
-    ) {
+    private async seedUser(email: string, password: string, name: string, role: "admin" | "user") {
         const existing = await this.usersService.findByEmail(email);
         if (existing) return; // already seeded (shouldn't happen with in-memory store, but safe)
 
