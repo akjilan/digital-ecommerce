@@ -15,7 +15,8 @@
     "outDir": "./dist",
     "baseUrl": "./",
     "incremental": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "types": ["node"]
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "test"]
