@@ -13,7 +13,7 @@ async function bootstrap() {
     }),
   );
 
-  const corsOrigin = process.env.CORS_ORIGIN ?? "http://localhost:3000";
+  const corsOrigin = process.env.CORS_ORIGIN ?? "https://digisupershop.netlify.app";
   app.enableCors({ origin: corsOrigin, credentials: true });
 
   const port = parseInt(process.env.PORT ?? "4000", 10);
