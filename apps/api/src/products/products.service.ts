@@ -1,5 +1,6 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
+import { EmbeddingService } from "../embedding/embedding.service";
 import type { Product, Prisma } from "@prisma/client";
 import type { CreateProductDto, UpdateProductDto } from "./dto/product.dto";
 
@@ -43,7 +44,12 @@ export interface PaginatedProducts {
 
 @Injectable()
 export class ProductsService {
-  constructor(private readonly prisma: PrismaService) { }
+  private readonly logger = new Logger(ProductsService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly embeddingService: EmbeddingService,
+  ) { }
 
   // ── Public catalogue ─────────────────────────────────────────────────────
 
@@ -198,6 +204,7 @@ export class ProductsService {
         ...(ownerId && { userId: ownerId }),
       } as any,
     });
+
     return toProduct(p);
   }
 
@@ -221,11 +228,13 @@ export class ProductsService {
           ...(dto.colors !== undefined && { colors: dto.colors }),
         } as any,
       });
+
       return toProduct(p);
     } catch {
       return undefined;
     }
   }
+
 
   async delete(id: string): Promise<boolean> {
     try {

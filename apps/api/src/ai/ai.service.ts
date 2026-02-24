@@ -2,6 +2,21 @@ import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import Groq from "groq-sdk";
 import { PrismaService } from "../prisma/prisma.service";
+import { EmbeddingService } from "../embedding/embedding.service";
+
+/* ─── Shape of a row returned by the pgvector similarity query ────────────── */
+interface ProductRow {
+    id: string;
+    title: string;
+    price: number;
+    stock: number;
+    description: string;
+    currency: string;
+    type: string;
+    sizes: string[];
+    colors: string[];
+    distance: number;
+}
 
 @Injectable()
 export class AiService {
@@ -12,6 +27,7 @@ export class AiService {
     constructor(
         private readonly prisma: PrismaService,
         private readonly config: ConfigService,
+        private readonly embeddingService: EmbeddingService,
     ) {
         this.groq = new Groq({
             apiKey: this.config.get<string>("GROQ_API_KEY"),
@@ -20,61 +36,29 @@ export class AiService {
     }
 
     async chat(message: string, userId?: string): Promise<string> {
-        // ── 1. Load FULL active product catalog (up to 60 products) ──────────
-        // We intentionally load all active products so the LLM can reason
-        // semantically — e.g. "smart watch" → "Fitness Tracker".
-        // We use a two-layer query: keyword-matched products rise to the top
-        // so they appear first in the prompt, then we append the rest.
-        const [matched, all] = await Promise.all([
-            // Keyword match — loose, so at least something shows first
-            this.prisma.product.findMany({
-                where: {
-                    status: "active",
-                    OR: [
-                        { title: { contains: message.slice(0, 40), mode: "insensitive" } },
-                        { description: { contains: message.slice(0, 40), mode: "insensitive" } },
-                    ],
-                },
-                take: 10,
-                orderBy: { createdAt: "desc" },
-                select: {
-                    id: true,
-                    title: true,
-                    price: true,
-                    stock: true,
-                    description: true,
-                    currency: true,
-                    type: true,
-                    sizes: true,
-                    colors: true,
-                },
-            }),
-            // Full catalog — always loaded regardless of search term
-            this.prisma.product.findMany({
-                where: { status: "active" },
-                take: 25,
-                orderBy: { createdAt: "desc" },
-                select: {
-                    id: true,
-                    title: true,
-                    price: true,
-                    stock: true,
-                    description: true,
-                    currency: true,
-                    type: true,
-                    sizes: true,
-                    colors: true,
-                },
-            }),
-        ]);
+        // ── 1. Retrieve products for context ─────────────────────────────────
+        // Simplified retrieval: just get the latest 5 active products
+        // (Reverted from pgvector similarity search as requested)
+        const fallback = await this.prisma.product.findMany({
+            where: { status: "active" },
+            take: 5,
+            orderBy: { createdAt: "desc" },
+            select: {
+                id: true,
+                title: true,
+                price: true,
+                stock: true,
+                description: true,
+                currency: true,
+                type: true,
+                sizes: true,
+                colors: true,
+            },
+        });
+        const products = fallback.map((p) => ({ ...p, distance: 0 }));
 
-        // Deduplicate: matched products first, then the rest
-        const matchedIds = new Set(matched.map((p) => p.id));
-        const remaining = all.filter((p) => !matchedIds.has(p.id));
-        const products = [...matched, ...remaining].slice(0, 20);
-
-        // ── 2. Build product catalog block ────────────────────────────────────
-        const formatProduct = (p: (typeof products)[0]) => {
+        // ── 3. Build compact product context block ────────────────────────────
+        const formatProduct = (p: ProductRow): string => {
             const currency = p.currency ?? "USD";
             const stockLabel = p.stock > 0 ? `In stock (${p.stock})` : "Out of stock";
             const extras: string[] = [];
@@ -85,42 +69,42 @@ export class AiService {
             return `• ${p.title} — ${currency} ${p.price.toFixed(2)} | ${stockLabel}${extraStr}\n  ${p.description.slice(0, 120)}`;
         };
 
-        const catalogBlock =
+        const productContext =
             products.length > 0
                 ? products.map(formatProduct).join("\n\n")
-                : "No products currently in the catalog.";
+                : "No matching products found in catalog.";
 
-        // ── 3. System prompt ──────────────────────────────────────────────────
-        const systemPrompt = `You are a friendly, knowledgeable ecommerce AI assistant for our online store.
+        // ── 4. System prompt ──────────────────────────────────────────────────
+        const systemPrompt = `You are a friendly, knowledgeable ecommerce AI assistant.
 
-PRODUCT CATALOG (complete list of all active products):
-${catalogBlock}
+SEMANTICALLY RELEVANT PRODUCTS (top 5 matches for the user's query):
+${productContext}
 
 INSTRUCTIONS:
-- ALWAYS check the product catalog above before saying we don't carry something.
-- Use semantic reasoning — "smart watch" matches "Fitness Tracker", "running shoes" matches "Athletic Sneakers", etc.
-- When a product exists, mention its EXACT name and price from the catalog.
-- If multiple products are relevant, list them briefly.
-- If something truly is not in the catalog, say so and suggest the closest match from the catalog.
-- Keep responses concise (2–4 sentences max) and helpful.
-- NEVER invent products or prices not in the catalog above.
-- For non-product questions (shipping, returns, etc.) give a short, helpful answer.
-- If you cannot confidently match a product, prefer listing the top 2 closest products from the catalog rather than saying we don't carry it.`;
+- Reference products by their EXACT name and price from the list above.
+- If multiple products fit the query, briefly list them.
+- If the list shows "No matching products", say so and suggest returning to browse the full catalog.
+- Keep replies to 2–4 sentences. Be concise and helpful.
+- NEVER invent products or prices not shown above.
+- For non-product questions (shipping, returns, account help) give a short helpful answer.
+- If you cannot confidently match a product, list the closest 1–2 from above rather than saying we don't carry it.`;
 
-        // ── 4. Call Groq ──────────────────────────────────────────────────────
-        let reply: string;
+        // ── 5. Load recent conversation history (auth users) ─────────────────
         const history = userId
             ? await this.prisma.chatMessage.findMany({
                 where: { userId },
                 orderBy: { createdAt: "desc" },
                 take: 6,
+                select: { role: true, content: true },
             })
             : [];
 
-        const formattedHistory = history.reverse().map((m) => ({
-            role: m.role as "user" | "assistant",
-            content: m.content,
-        }));
+        const formattedHistory = history
+            .reverse()
+            .map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
+
+        // ── 6. Call Groq LLM ──────────────────────────────────────────────────
+        let reply: string;
         try {
             const completion = await this.groq.chat.completions.create({
                 model: this.model,
@@ -137,10 +121,10 @@ INSTRUCTIONS:
                 "I'm sorry, I couldn't process that request. Please try again.";
         } catch (err) {
             this.logger.error("Groq API error", err);
-            reply = "I'm having trouble connecting to the AI right now. Please try again in a moment.";
+            reply = "I'm having trouble connecting right now. Please try again in a moment.";
         }
 
-        // ── 5. Persist for authenticated users ────────────────────────────────
+        // ── 7. Persist for authenticated users ────────────────────────────────
         if (userId) {
             await this.prisma.chatMessage.createMany({
                 data: [
