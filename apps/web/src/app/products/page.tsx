@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, memo } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, memo, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Search,
@@ -445,9 +445,9 @@ const Pagination = memo(
 );
 Pagination.displayName = "Pagination";
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
+// ─── Main Page Content ────────────────────────────────────────────────────────
 
-export default function ProductsPage() {
+function ProductsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -730,5 +730,24 @@ export default function ProductsPage() {
         </div>
       </div>
     </>
+  );
+}
+
+export default function ProductsPage() {
+  // Assuming Suspense is imported at the top of the file, e.g.,
+  // import { ..., Suspense } from "react";
+  return (
+    <Suspense
+      fallback={
+        <div className="container py-32 flex flex-col items-center justify-center text-center">
+          <ProductSkeleton />
+          <p className="mt-4 text-sm" style={{ color: "var(--muted-fg)" }}>
+            Loading products...
+          </p>
+        </div>
+      }
+    >
+      <ProductsContent />
+    </Suspense>
   );
 }
