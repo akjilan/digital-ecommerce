@@ -36,7 +36,9 @@ export class SeedService implements OnApplicationBootstrap {
                 "user",
             );
         } catch (error) {
-            this.logger.warn("Seeding skipped: Database tables may not exist yet.");
+            this.logger.warn(
+                "Seed skipped: Database tables might not exist yet. Ensure migrations are run.",
+            );
         }
     }
 
